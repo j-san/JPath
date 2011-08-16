@@ -1,0 +1,156 @@
+<html>
+	<head>
+		<script src="JPath.js"></script>
+		<script>
+    var data = {
+        foo: {
+            bar: 'bar',
+            baz: 'baz',
+            foobar: {
+	            foo: 'foo1',
+	            bar: 'bar',
+	            baz: 'baz'
+			}
+        },
+        bar: [
+	        {
+	            a: 'a'
+	        },
+	        {
+	            a: 'a',
+	            b: 'b'
+	        },
+	        {
+	            a: 'a',
+	            b: 'b',
+	            c: 'c'
+	        },
+	        {
+	            a: { p:'p', q:'q', r:'r', foo:'foo2' },
+	            b: 'b',
+	            x: 'x'
+	        },
+	        {
+	            c: 'c'
+	        }
+        ],
+        toto: {
+            foo: 'foo3',
+            fifi: 'fifi'
+        }
+    };
+
+    // console.log(data);
+    var set = JPath(data);
+    console.log('dataset',set);
+
+    console.log(set.copyOf());
+
+    console.groupCollapsed('q(foo)');
+	console.log(set.q('foo'));
+	console.groupEnd();
+
+    console.groupCollapsed('count(foo)');
+	console.log(set.count('foo'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(foo).q(bar)');
+	console.log(set.q('foo').q('bar'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(/foo/bar)');
+	console.log(set.q('/foo/bar'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(bar/a)');
+	console.log(set.q('bar/a'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(/bar/b)');
+	console.log(set.q('/bar/b'));
+	console.groupEnd();
+
+    console.groupCollapsed('valueOf(/bar/b)');
+	console.log(set.valueOf('/bar/b'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(//foo/)');
+	console.log(set.q('//foo/'));
+	console.groupEnd();
+
+    console.groupCollapsed('copyOf(//foo/)');
+	console.log(set.copyOf('//foo/'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(*)');
+	console.log(set.q('*'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(bar/*)');
+	console.log(set.q('bar/*'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(bar/a/*)');
+	console.log(set.q('bar/a/*'));
+	console.groupEnd();
+
+    console.groupCollapsed('exists(bar/a/*)');
+	console.log(set.exists('bar/a/*'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(//*)');
+	console.log(set.q('//*'));
+	console.groupEnd();
+
+
+    console.groupCollapsed('q(//*,function)');
+	set.q('//*',function(i,e){
+		console.log(JPath(e).valueOf());
+	});
+	console.groupEnd();
+
+	// error
+	// console.groupCollapsed('q(//)');
+	// console.log(set.q('//'));
+	// console.groupEnd();
+
+    console.groupCollapsed('q(bar//*)');
+	console.log(set.q('bar//*'));
+	console.groupEnd();
+
+
+
+    console.groupCollapsed('q(foo[bar])');
+	console.log(set.q('foo[bar]'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(bar/a[p])');
+	console.log(set.q('bar/a[p]'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(//foo[foobar/foo])');
+	console.log(set.q('//foo[foobar/foo]'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(//foo[//foo])');
+	console.log(set.q('//foo[//foo]'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(bar/*[2])');
+	console.log(set.q('bar/*[2]'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(bar/a[0])');
+	console.log(set.q('bar/a[0]'));
+	console.groupEnd();
+
+    console.groupCollapsed('q(//foo[//foo][1])');
+	console.log(set.q('//foo[//foo][1]'));
+	console.groupEnd();
+
+    console.groupCollapsed('count(bar/*)');
+	console.log(set.count('bar/*'));
+	console.groupEnd();
+		</script>
+	</head>
+</script>
