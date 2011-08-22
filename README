@@ -34,3 +34,8 @@ JPath.copyOf(path)
  path//deep//inside/and/*/all/children
  with[contitionnal/path]/and/index[123]/selection
  /any[combining]/of//different/*[0]/syntax
+ 
+ 
+ examples :
+ 
+ ...

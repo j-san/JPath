@@ -1,156 +1,160 @@
 <html>
 	<head>
+		<script src="http://code.jquery.com/jquery-latest.js"></script>
+		<link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
+		<script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
 		<script src="JPath.js"></script>
+		<script src="expressions.js"></script>
 		<script>
-    var data = {
-        foo: {
-            bar: 'bar',
-            baz: 'baz',
-            foobar: {
-	            foo: 'foo1',
-	            bar: 'bar',
-	            baz: 'baz'
-			}
+$(document).ready(function(){
+
+var data = {
+        hello: {
+		bar: 'bar',
+		baz: 'baz',
+		foobar: {
+			foo: 'foo1',
+			bar: 'bar',
+			baz: 'baz'
+		}
         },
-        bar: [
-	        {
-	            a: 'a'
-	        },
-	        {
-	            a: 'a',
-	            b: 'b'
-	        },
-	        {
-	            a: 'a',
-	            b: 'b',
-	            c: 'c'
-	        },
+        a: [
+	        { aa: 1 },
+	        { aa: 2, ab: 3 },
+	        { ac: 'a', ad: 'b', ae: 'c' },
 	        {
 	            a: { p:'p', q:'q', r:'r', foo:'foo2' },
-	            b: 'b',
-	            x: 'x'
+	            b: 'b', x: 'x'
 	        },
-	        {
-	            c: 'c'
-	        }
+	        { c: 'c' }
         ],
-        toto: {
-            foo: 'foo3',
-            fifi: 'fifi'
-        }
-    };
+        toto: { foo: 'foo3', fifi: 'fifi' }
+};
 
-    // console.log(data);
-    var set = JPath(data);
-    console.log('dataset',set);
-
-    console.log(set.copyOf());
-
-    console.groupCollapsed('q(foo)');
-	console.log(set.q('foo'));
-	console.groupEnd();
-
-    console.groupCollapsed('count(foo)');
-	console.log(set.count('foo'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(foo).q(bar)');
-	console.log(set.q('foo').q('bar'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(/foo/bar)');
-	console.log(set.q('/foo/bar'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(bar/a)');
-	console.log(set.q('bar/a'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(/bar/b)');
-	console.log(set.q('/bar/b'));
-	console.groupEnd();
-
-    console.groupCollapsed('valueOf(/bar/b)');
-	console.log(set.valueOf('/bar/b'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(//foo/)');
-	console.log(set.q('//foo/'));
-	console.groupEnd();
-
-    console.groupCollapsed('copyOf(//foo/)');
-	console.log(set.copyOf('//foo/'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(*)');
-	console.log(set.q('*'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(bar/*)');
-	console.log(set.q('bar/*'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(bar/a/*)');
-	console.log(set.q('bar/a/*'));
-	console.groupEnd();
-
-    console.groupCollapsed('exists(bar/a/*)');
-	console.log(set.exists('bar/a/*'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(//*)');
-	console.log(set.q('//*'));
-	console.groupEnd();
-
-
-    console.groupCollapsed('q(//*,function)');
-	set.q('//*',function(i,e){
-		console.log(JPath(e).valueOf());
+	var set = JPath(data);
+	var tests = JPath({
+		assertEquals:[
+			{ path:'toto', expected:[{ foo: 'foo3', fifi: 'fifi' }],values:'foo3,fifi' },
+			{ path:'toto/foo', expected:['foo3'], count:1, values:'foo3' },
+			{ path:'/toto/foo', expected:['foo3'], count:1, values:'foo3' },
+			{ path:'/toto/foo/', expected:['foo3'], count:1, values:'foo3' },
+			{ path:'toto/foo/', expected:['foo3'], count:1, values:'foo3' },
+			{ path:'a/aa', expected:[1,2], count:2, sum:3, values:'1,2' },
+			{ path:'a/ab', expected:[3] , count:1, sum:3, values:'3'},
+			{ path:'//foo/', expected:['foo1','foo2','foo3'] , count:3},
+			{ path:'a/*', expected:[1,2,3,'a','b','c',{ p:'p', q:'q', r:'r', foo:'foo2' },'b','x','c'], count:10 },
+			{ path:'a/a/*', expected:['p','q','r','foo2'],values:'p,q,r,foo2' },
+			{ path:'//*', expected:[{"bar": "bar","baz": "baz","foobar": {"foo": "foo1","bar": "bar","baz": "baz"}},"bar","baz",{"foo": "foo1","bar": "bar","baz": "baz"},"foo1","bar","baz",[{"aa": 1},{"aa": 2,"ab": 3},{"ac": "a","ad": "b","ae": "c"},{"a": {"p": "p","q": "q","r": "r","foo": "foo2"},"b": "b","x": "x"},{"c": "c"}],1,2,3,"a","b","c",{"p": "p","q": "q","r": "r","foo": "foo2"},"p","q","r","foo2","b","x","c",{"foo": "foo3","fifi": "fifi"},"foo3","fifi"] }
+ 
+//    console.groupCollapsed('q(//*,function)');
+//	set.q('//*',function(i,e){
+//		console.log(JPath(e).valueOf());
+//	});
+//	console.groupEnd();
+//
+//    console.groupCollapsed('q(bar//*)');
+//	console.log(set.q('bar//*'));
+//	console.groupEnd();
+//
+//
+//
+//    console.groupCollapsed('q(foo[bar])');
+//	console.log(set.q('foo[bar]'));
+//	console.groupEnd();
+//
+//    console.groupCollapsed('q(bar/a[p])');
+//	console.log(set.q('bar/a[p]'));
+//	console.groupEnd();
+//
+//    console.groupCollapsed('q(//foo[foobar/foo])');
+//	console.log(set.q('//foo[foobar/foo]'));
+//	console.groupEnd();
+//
+//    console.groupCollapsed('q(//foo[//foo])');
+//	console.log(set.q('//foo[//foo]'));
+//	console.groupEnd();
+//
+//    console.groupCollapsed('q(bar/*[2])');
+//	console.log(set.q('bar/*[2]'));
+//	console.groupEnd();
+//
+//    console.groupCollapsed('q(bar/a[0])');
+//	console.log(set.q('bar/a[0]'));
+//	console.groupEnd();
+//
+//    console.groupCollapsed('q(//foo[//foo][1])');
+//	console.log(set.q('//foo[//foo][1]'));
+//	console.groupEnd();
+//
+//    console.groupCollapsed('count(bar/*)');
+//	console.log(set.count('bar/*'));
+//	console.groupEnd();
+		],
+		assertErrors:[
+			{ path:'toto//'},
+			{ path:'//'}
+		]
 	});
-	console.groupEnd();
+	test("q(path) test", function() {
+		expect(tests[0].assertEquals.length);
+		tests.q('/assertEquals',function(i,test){
+			var results = set.q(test.path);
+			deepEqual(results, test.expected, "set.q(" + test.path + ") return " + results.copyOf());
 
-	// error
-	// console.groupCollapsed('q(//)');
-	// console.log(set.q('//'));
-	// console.groupEnd();
+		});
 
-    console.groupCollapsed('q(bar//*)');
-	console.log(set.q('bar//*'));
-	console.groupEnd();
+	});
+  	test("count(path) test", function() {
+		var c = 0;
+		for(var i=0;i<tests[0].assertEquals.length;i++){
+			if(tests[0].assertEquals[i].count){c++;}
+		}
+		expect(c*2);
+		tests.q('/assertEquals[count]',function(i,test){
+			equal(set.q(test.path).count(), test.count, "set.q(" + test.path + ").count() return " + set.q(test.path).count());
+			equal(set.count(test.path), test.count, "set.count(" + test.path + ") return " + set.count(test.path));
+		});
+	});
+  	test("valueOf(path) test", function() {
+		var c = 0;
+		for(var i=0;i<tests[0].assertEquals.length;i++){
+			if(tests[0].assertEquals[i].values){c++;}
+		}
+		expect(c*2);
+		tests.q('/assertEquals[values]',function(i,test){
+			equal(set.q(test.path).valueOf(), test.values, "set.q(" + test.path + ").valueOf() return " + set.q(test.path).valueOf());
+			equal(set.valueOf(test.path), test.values, "set.count(" + test.path + ") return " + set.valueOf(test.path));
+		});
+	});
+  	test("sum(path) test", function() {
+		var c = 0;
+		for(var i=0;i<tests[0].assertEquals.length;i++){
+			if(tests[0].assertEquals[i].sum){c++;}
+		}
+		expect(c*2);
+		tests.q('/assertEquals[sum]',function(i,test){
+			equal(set.q(test.path).sum(), test.sum, "set.q(" + test.path + ").sum() return " + set.q(test.path).sum());
+			equal(set.sum(test.path), test.sum, "set.sum(" + test.path + ") return " + set.sum(test.path));
+		});
+	});
+	test("raise test", function() {
+		expect(tests[0].assertErrors.length);
+		tests.q('/assertErrors',function(i,test){
+			raises(function(){
+				set.q(test.path);
+			},"set.q(" + test.path + ") raise an error");
+		});
+	});
+});
 
-
-
-    console.groupCollapsed('q(foo[bar])');
-	console.log(set.q('foo[bar]'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(bar/a[p])');
-	console.log(set.q('bar/a[p]'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(//foo[foobar/foo])');
-	console.log(set.q('//foo[foobar/foo]'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(//foo[//foo])');
-	console.log(set.q('//foo[//foo]'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(bar/*[2])');
-	console.log(set.q('bar/*[2]'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(bar/a[0])');
-	console.log(set.q('bar/a[0]'));
-	console.groupEnd();
-
-    console.groupCollapsed('q(//foo[//foo][1])');
-	console.log(set.q('//foo[//foo][1]'));
-	console.groupEnd();
-
-    console.groupCollapsed('count(bar/*)');
-	console.log(set.count('bar/*'));
-	console.groupEnd();
 		</script>
 	</head>
-</script>
+	<body>
+		<h1 id="qunit-header">Tests for JPath</h1>
+		<h2 id="qunit-banner"></h2>
+		<div id="qunit-testrunner-toolbar"></div>
+		<h2 id="qunit-userAgent"></h2>
+		<ol id="qunit-tests"></ol>
+		<div id="qunit-fixture">test markup, will be hidden</div>
+	</body>
+</html>

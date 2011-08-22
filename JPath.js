@@ -64,7 +64,15 @@
                 {
                     if(o[name])
                     {
-                        results.push(o[name]);
+			//todo put in a function "add" and do it recursively
+			if(o[name] instanceof Array)
+			{
+                            results = results.concat(o[name]);
+			}
+			else
+			{
+                            results.push(o[name]);
+			}
                     }
                     if(deep)
                     { // return all match in tree
