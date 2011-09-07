@@ -4,32 +4,36 @@
 		<link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
 		<script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
 		<script src="JPath.js"></script>
-		<script src="expressions.js"></script>
 		<script>
 $(document).ready(function(){
 
-var data = {
-        hello: {
-		bar: 'bar',
-		baz: 'baz',
-		foobar: {
-			foo: 'foo1',
+	var data = {
+		hello: {
 			bar: 'bar',
-			baz: 'baz'
-		}
-        },
-        a: [
-	        { aa: 1 },
-	        { aa: 2, ab: 3 },
-	        { ac: 'a', ad: 'b', ae: 'c' },
-	        {
-	            a: { p:'p', q:'q', r:'r', foo:'foo2' },
-	            b: 'b', x: 'x'
-	        },
-	        { c: 'c' }
-        ],
-        toto: { foo: 'foo3', fifi: 'fifi' }
-};
+			baz: 'baz',
+			foobar: {
+				foo: 'foo1',
+				bar: 'bar',
+				baz: 'baz'
+			}
+		},
+		a: [
+			{ aa: 1 },
+			{ aa: 2, ab: 3 },
+			{ ac: 'a', ad: 'b', ae: 'c' },
+			{
+			    a: { p:'p', q:'q', r:'r', foo:'foo2' },
+			    b: 'b', x: 'x'
+			},
+			{ c: 'c' }
+		],
+		b: [
+			{ ba: [1,2,3,4,5,6] },
+			{ ba: 2, bb: 3 },
+			{ bc: 'a', bd: 'b', be: 'c' }
+		],
+		toto: { foo: 'foo3', fifi: 'fifi' }
+	};
 
 	var set = JPath(data);
 	var tests = JPath({
@@ -43,52 +47,21 @@ var data = {
 			{ path:'a/ab', expected:[3] , count:1, sum:3, values:'3'},
 			{ path:'//foo/', expected:['foo1','foo2','foo3'] , count:3},
 			{ path:'a/*', expected:[1,2,3,'a','b','c',{ p:'p', q:'q', r:'r', foo:'foo2' },'b','x','c'], count:10 },
+			{ path:'a//*', expected:[1,2,3,'a','b','c',{ p:'p', q:'q', r:'r', foo:'foo2' },'p','q','r','foo2','b','x','c'] , count:14},
 			{ path:'a/a/*', expected:['p','q','r','foo2'],values:'p,q,r,foo2' },
-			{ path:'//*', expected:[{"bar": "bar","baz": "baz","foobar": {"foo": "foo1","bar": "bar","baz": "baz"}},"bar","baz",{"foo": "foo1","bar": "bar","baz": "baz"},"foo1","bar","baz",[{"aa": 1},{"aa": 2,"ab": 3},{"ac": "a","ad": "b","ae": "c"},{"a": {"p": "p","q": "q","r": "r","foo": "foo2"},"b": "b","x": "x"},{"c": "c"}],1,2,3,"a","b","c",{"p": "p","q": "q","r": "r","foo": "foo2"},"p","q","r","foo2","b","x","c",{"foo": "foo3","fifi": "fifi"},"foo3","fifi"] }
- 
-//    console.groupCollapsed('q(//*,function)');
-//	set.q('//*',function(i,e){
-//		console.log(JPath(e).valueOf());
-//	});
-//	console.groupEnd();
-//
-//    console.groupCollapsed('q(bar//*)');
-//	console.log(set.q('bar//*'));
-//	console.groupEnd();
-//
-//
-//
-//    console.groupCollapsed('q(foo[bar])');
-//	console.log(set.q('foo[bar]'));
-//	console.groupEnd();
-//
-//    console.groupCollapsed('q(bar/a[p])');
-//	console.log(set.q('bar/a[p]'));
-//	console.groupEnd();
-//
-//    console.groupCollapsed('q(//foo[foobar/foo])');
-//	console.log(set.q('//foo[foobar/foo]'));
-//	console.groupEnd();
-//
-//    console.groupCollapsed('q(//foo[//foo])');
-//	console.log(set.q('//foo[//foo]'));
-//	console.groupEnd();
-//
-//    console.groupCollapsed('q(bar/*[2])');
-//	console.log(set.q('bar/*[2]'));
-//	console.groupEnd();
-//
-//    console.groupCollapsed('q(bar/a[0])');
-//	console.log(set.q('bar/a[0]'));
-//	console.groupEnd();
-//
-//    console.groupCollapsed('q(//foo[//foo][1])');
-//	console.log(set.q('//foo[//foo][1]'));
-//	console.groupEnd();
-//
-//    console.groupCollapsed('count(bar/*)');
-//	console.log(set.count('bar/*'));
-//	console.groupEnd();
+			//{ path:'//*', expected:[{"bar": "bar","baz": "baz","foobar": {"foo": "foo1","bar": "bar","baz": "baz"}},"bar","baz",{"foo": "foo1","bar": "bar","baz": "baz"},"foo1","bar","baz",[{"aa": 1},{"aa": 2,"ab": 3},{"ac": "a","ad": "b","ae": "c"},{"a": {"p": "p","q": "q","r": "r","foo": "foo2"},"b": "b","x": "x"},{"c": "c"}],1,2,3,"a","b","c",{"p": "p","q": "q","r": "r","foo": "foo2"},"p","q","r","foo2","b","x","c",{"foo": "foo3","fifi": "fifi"},"foo3","fifi"] },
+ 			{ path:'//foo/', expected:['foo1','foo2','foo3'] , count:3},
+			{ path:'hello[bar]', expected:[{bar: 'bar',baz: 'baz',foobar: {foo: 'foo1',bar: 'bar',baz: 'baz'}}] , count:1},
+			{ path:'a/a[p]', expected:[{ p:'p', q:'q', r:'r', foo:'foo2' }] , count:1},
+			{ path:'//hello[foobar/foo]', expected:[{bar: 'bar',baz: 'baz',foobar: {foo: 'foo1',bar: 'bar',baz: 'baz'}}] , count:1},
+			{ path:'//foo[//foo]', expected:[] , count:0},
+			{ path:'a/*[2]', expected:[3] , count:1},
+			{ path:'a/a[0]', expected:[{ p:'p', q:'q', r:'r', foo:'foo2' }] , count:1},
+			{ path:'//foo[//foo][1]', expected:[] , count:0},
+			{ path:'a', expected:[{ aa: 1 },{ aa: 2, ab: 3 },{ ac: 'a', ad: 'b', ae: 'c' },{a: { p:'p', q:'q', r:'r', foo:'foo2' },b: 'b', x: 'x'},{ c: 'c' }] , count:5},
+			{ path:'a[a]', expected:[{a: { p:'p', q:'q', r:'r', foo:'foo2' },b: 'b', x: 'x'}] , count:1},
+			{ path:'//a[//a][0]', expected:[{a: { p:'p', q:'q', r:'r', foo:'foo2' },b: 'b', x: 'x'}] , count:1},
+			{ path:'a/*[2] + 2', expected:5}
 		],
 		assertErrors:[
 			{ path:'toto//'},
@@ -99,11 +72,12 @@ var data = {
 		expect(tests[0].assertEquals.length);
 		tests.q('/assertEquals',function(i,test){
 			var results = set.q(test.path);
-			deepEqual(results, test.expected, "set.q(" + test.path + ") return " + results.copyOf());
+			deepEqual(results, test.expected, "set.q(" + test.path + ")");
 
 		});
 
 	});
+	console.log(tests);
   	test("count(path) test", function() {
 		var c = 0;
 		for(var i=0;i<tests[0].assertEquals.length;i++){
@@ -111,8 +85,8 @@ var data = {
 		}
 		expect(c*2);
 		tests.q('/assertEquals[count]',function(i,test){
-			equal(set.q(test.path).count(), test.count, "set.q(" + test.path + ").count() return " + set.q(test.path).count());
-			equal(set.count(test.path), test.count, "set.count(" + test.path + ") return " + set.count(test.path));
+			equal(set.q(test.path).count(), test.count, "set.q(" + test.path + ").count()");
+			equal(set.count(test.path), test.count, "set.count(" + test.path + ")");
 		});
 	});
   	test("valueOf(path) test", function() {
@@ -144,6 +118,26 @@ var data = {
 				set.q(test.path);
 			},"set.q(" + test.path + ") raise an error");
 		});
+	});
+
+
+	test("basic expressions tests", function() {
+	
+	    var tests = [
+		{exp:'1 + 2 + 3 + 4',result:10},
+		{exp:'4 + 2 = 5',result:false},
+		{exp:'8 + 7 * 2',result:22},
+		{exp:'8 * 7 + 2',result:58},
+		{exp:'4 + 2 = 9 - 3',result:true},
+		{exp:'1 + 2 = 5 - 2',result:true},
+		{exp:'2 + 2 = 5',result:false},
+		{exp:'4 + 6 / 3 + 8',result:14},
+		{exp:'4 + 2 * 9 / 3 * 2',result:16}
+	    ]
+	    
+	    for(var i=0;i < tests.length;i++){
+		equal(set.q(tests[i].exp), tests[i].result, tests[i].exp + ' => ' + tests[i].result + ' - ' + set.q(tests[i].exp));
+	    }
 	});
 });
 
