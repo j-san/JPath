@@ -330,80 +330,88 @@
      * @param root a JPath object
      */
     var query = function(path,data,root) {
+	var q = new Query(data,root);
+	return q.exe(path);
+    }
+    
+    var Query = function(data,root){
+	this.data = data;
+	this.root = root;
+    }
+    Query.prototype.exe = function(path){
 	if(!path)
 	{
-	    return data;
+	    return this.data;
 	}
-
-	var operate = function(operation)
+	return this.operate(analyseExpression(path))
+    }
+    Query.prototype.operate = function(operation)
+    {
+	if(typeof operation == 'string')
 	{
-	    if(typeof operation == 'string')
+	    var i = parseInt(operation);
+
+	    if(isNaN(i) || i.toString() != operation)
 	    {
-		var i = parseInt(operation);
-    
-		if(isNaN(i) || i.toString() != operation)
-		{
-		    return evaluatePath(operation,data,root);
-		}
-		return i;
+		return evaluatePath(operation,this.data,this.root);
 	    }
-	    else
-	    {
-		return operateFunctions[operation.operator](operation.left,operation.right);
-	    }
+	    return i;
 	}
+	else
+	{
+	    return this[operateFunctions[operation.operator]](operation.left,operation.right);
+	}
+    }
+
+    Query.prototype.operateAdd = function(left,right)
+    {
+	return castInt(this.operate(left)) + castInt(this.operate(right));
+    }
     
-	var operateAdd = function(left,right)
-	{
-	    return castInt(operate(left)) + castInt(operate(right));
-	}
-	
-	var operateMult = function(left,right)
-	{
-	    return castInt(operate(left)) * castInt(operate(right));
-	}
-	
-	var operateDiv = function(left,right)
-	{
-	    return castInt(operate(left)) / castInt(operate(right));
-	}
-	
-	var operateMod = function(left,right)
-	{
-	    return castInt(operate(left)) % castInt(operate(right));
-	}
-	
-	var operateSub = function(left,right)
-	{
-	    return castInt(operate(left)) - castInt(operate(right));
-	}
-	
-	var operateEquals = function(left,right)
-	{
-	    return operate(left) == operate(right);
-	}
+    Query.prototype.operateMult = function(left,right)
+    {
+	return castInt(this.operate(left)) * castInt(this.operate(right));
+    }
     
-	var operateJoin = function(left,right)
-	{
-	    return operate(left).concat(operate(right));
-	}
+    Query.prototype.operateDiv = function(left,right)
+    {
+	return castInt(this.operate(left)) / castInt(this.operate(right));
+    }
+    
+    Query.prototype.operateMod = function(left,right)
+    {
+	return castInt(this.operate(left)) % castInt(this.operate(right));
+    }
+    
+    Query.prototype.operateSub = function(left,right)
+    {
+	return castInt(this.operate(left)) - castInt(this.operate(right));
+    }
+    
+    Query.prototype.operateEquals = function(left,right)
+    {
+	return this.operate(left) == this.operate(right);
+    }
+
+    Query.prototype.operateJoin = function(left,right)
+    {
+	return this.operate(left).concat(this.operate(right));
+    }
 
 
-	var operateFunctions = {
-	    '+':operateAdd,
-	    '-':operateSub,
-	    '*':operateMult,
-	    'div':operateDiv,
-	    '/':operateDiv,
-	    'mod':operateMod,
-	    '=':operateEquals,
-	    '|':operateJoin
-	    // and
-	    // or
-	};
-	
-	return operate(analyseExpression(path))
+    var operateFunctions = {
+	'+':'operateAdd',
+	'-':'operateSub',
+	'*':'operateMult',
+	'div':'operateDiv',
+	'/':'operateDiv',
+	'mod':'operateMod',
+	'=':'operateEquals',
+	'|':'operateJoin'
+	// and
+	// or
     };
+
 
     
 
