@@ -1,42 +1,6 @@
 (function()
 {
 
-	// http://saxon.sourceforge.net/saxon6.5/expressions.html
-    var separators = {
-		tokens: {
-			'+':'add',
-			'-':'substract',
-			'*':'multiply',
-			'/':'child',
-			'=':'equals',
-			'|':'union',
-			' ':'separator',
-			'[':'predicateOpen',
-			']':'predicateClose',
-			'(':'parentheseOpen',
-			')':'parentheseClose'
-		},
-		textualOps: {
-			'mod':'modulo',
-			'div':'divide',
-			'and':'and',
-			'or':'or',
-			'//':'descendant'
-		}
-			// 'mod':1,
-			// '*':3,
-			// 'div':3,
-			// '/':3,
-			// '+':5,
-			// '-':5,
-			// '|':7,
-			// '=':9,
-			// 'and':12,
-			// 'or':15
-			// and
-			// or
-    };
-
 	var Operation = function(left,operator,right)
 	{
 		this.l = left;
@@ -89,18 +53,20 @@
 		return '<' +  this.o + '>';
 	}
 
-	function getTextualOperator(exp)
-	{
-		for(op in separators.textualOperators)
-		{
-			if(exp.indexOf(op) == 0){
-				return op;
-			}
-		}
-	}
-
 	var Expression = function(text){
 		this.expression = text;
+	}
+
+	Expression.prototype.addOperation = function(i,separator,operand)
+	{
+		this.lastMatch = i;
+		if(this.operator) {
+			this.operation = new Operation(this.operation, this.operator,operand);
+		} else if(!this.operation) {
+			this.operation = operand;
+		}
+		this.operator = separator;
+		
 	}
 
 	Expression.prototype.parse = function()
@@ -119,51 +85,48 @@
 
 				if(separator == ' ')
 				{
-					if(separator = getTextualOperator(remaining))
+					var str;
+					if(str = remaining.substring(remaining.indexOf(' ')) in separators.strtokens)
 					{
-						this.lastMatch = i;
-						if(this.operator) {
-							this.operation = new Operation(this.operation, this.operator, operand);
-						} else {
-							this.operation = operand;
-						}
-						this.operator = separator;
+						this.addOperation(i,str,operand);
 					}
 				}
 				else if(separator == '(' || separator == '[')
 				{
-					if(operand.trim() && separator == '(')
+					if(separator == '[')
+					{
+						this.addOperation(i, separator, operand);
+					} 
+					else if(operand.trim() && separator == '(')
 					{
 						//call function
-						return new FunctionCall(left, parseExpression(remaining));
+					} else {
+						this.addOperation(i,separator);
 					}
-					this.lastMatch = i;
-					if(this.operator) {
-						this.operation = new Operation(this.operation, this.operator);
-					} else if(!this.operation) {
-						this.operation = operand;
-					}
-					this.operator = separator;
 				}
 				else if(separator == ')' || separator == ']')
 				{
-					this.lastMatch = i;
-					if(this.operator && this.operator != '(' && this.operator != '[') {
-						this.operation = new Operation(this.operation, this.operator, operand);
-					} else if(!this.operation) {
-						this.operation = operand;
-					}
+					this.addOperation(i,null,operand);
 					
-					var op = this.operation;
-					while(typeof op.l == 'object' && op.l.o != '(' && (op = op.l)) {}
+					var op = this.operation,prec;
+					while(typeof op == 'object' && op.o != '(' && op.o != '[') {prec = op; op = op.l;}
 					this.operation = new Parenthese(this.operation);
-					if(op.l.l) {
-						cp = this.operation;
-						this.operation = op.l.l;
-						this.operation.r = cp;
+					console.log(this.operation.toString())
+					if(typeof op == 'object')
+					{
+						if(op.l)
+						{
+							cp = this.operation;
+							this.operation = op.l;
+							this.operation.r = cp;
+						}
+						console.log(op.toString(),prec.toString())
+						prec.l = op.r;
 					}
-					op.l = op.l.r;
-					this.operator = null;
+					else
+					{
+						throw Error('parenthese not match');
+					}
 				}
 				else if(separator == '/')
 				{
@@ -177,30 +140,17 @@
 					{
 						operand = 'root';
 					}
-					this.lastMatch = i;
-					if(this.operator) {
-						this.operation = new Operation(this.operation, this.operator, operand);
-					} else if(!this.operation) {
-						this.operation = operand;
-					}
-					this.operator = separator;
+					this.addOperation(i,separator,operand);
 				}
 				else
 				{
 					if(operand.trim())
 					{
-						this.lastMatch = i;
-						if(this.operator) {
-							this.operation = new Operation(this.operation, this.operator, operand);
-						} else if(!this.operation) {
-							this.operation = operand;
-						}
-						this.operator = separator;
-						//return new Operation(left, separator, parseExpression(remaining));
+						this.addOperation(i,separator,operand);
 					}
 					else
 					{
-						if(this.operation)
+						if(this.operation && this.operation instanceof Parenthese)
 						{
 							this.lastMatch = i;
 							this.operator = separator;
@@ -213,18 +163,175 @@
 				}
 			}
 		}
-		if(this.operator) {
-			this.operation = new Operation(this.operation, this.operator, this.expression.substring(this.lastMatch + 1).trim());
-		} else if(!this.operation) {
-			this.operation = this.expression;
-		}
+		this.addOperation(i, null, this.expression.substring(this.lastMatch + 1).trim());
+
 		if(typeof this.operation == 'object') {
 			this.operation.resolvePriority();
 		}
 		return this.operation;
 	}
-	Expression.prototype.resolvePriority = function(){
+
+	Expression.prototype.execute = function(data,root)
+	{
+		if(typeof operation == 'string')
+		{
+		    var i = parseInt(operation);
+
+		    if(isNaN(i) || i.toString() != operation)
+		    {
+				return evaluatePath(operation,this.data,this.root);
+		    }
+		    return i;
+		}
+		else
+		{
+		    return this[operateFunctions[operation.operator]](operation.left,operation.right);
+		}
 	}
+	var operators = {
+		'predicate':{priority:1},
+		'parenthese':{priority:2},
+		'child':{priority:4},
+		'deepChild':{priority:4},
+		'modulo':{priority:6},
+		'divide':{priority:8},
+		'multiply':{priority:8},
+		'add':{priority:10},
+		'substract':{priority:10},
+		'union':{priority:12},
+		'equals':{priority:15},
+		'and':{priority:18},
+		'or':{priority:20},
+	}
+
+	// http://saxon.sourceforge.net/saxon6.5/expressions.html
+    var separators = {
+		tokens: {
+			'+': operators.add,
+			'-': operators.substract,
+			'*': operators.multiply,
+			'/': operators.child,
+			'=': operators.equals,
+			'|': operators.union,
+			' ': null,
+			'[': operators.predicate,
+			']': null,
+			'(': operators.parenthese,
+			')': null
+		},
+		strtokens: {
+			'mod': operators.modulo,
+			'div': operators.divide,
+			'and': operators.and,
+			'or':  operators.or,
+			'//':  operators.descendant
+		}
+    };
+
+/*
+    Query.prototype.operateAdd = function(left,right)
+    {
+		return castInt(this.operate(left)) + castInt(this.operate(right));
+    }
+    
+    Query.prototype.operateMult = function(left,right)
+    {
+		return castInt(this.operate(left)) * castInt(this.operate(right));
+    }
+    
+    Query.prototype.operateDiv = function(left,right)
+    {
+	return castInt(this.operate(left)) / castInt(this.operate(right));
+    }
+    
+    Query.prototype.operateMod = function(left,right)
+    {
+	return castInt(this.operate(left)) % castInt(this.operate(right));
+    }
+    
+    Query.prototype.operateSub = function(left,right)
+    {
+	return castInt(this.operate(left)) - castInt(this.operate(right));
+    }
+    
+    Query.prototype.operateEquals = function(left,right)
+    {
+		var resLeft = this.operate(left);
+		if (resLeft instanceof Array)
+	    {
+	        for (var i = 0; i < resLeft.length; i++)
+	        {
+				if(operateEquals(resLeft,right))
+				{
+				    return true;
+				}
+		    }
+		    return false;
+		}
+		else
+		{
+		    var resRight = this.operate(right);
+		    if (resRight instanceof Array)
+		    {
+				for (var i = 0; i < resRight.length; i++)
+				{
+				    if(operateEquals(resLeft,resRight))
+				    {
+						return true;
+				    }
+				}
+				return false;
+		    }
+		    return resLeft == resRight;
+		}
+    }
+
+    Query.prototype.operateJoin = function(left,right)
+    {
+		return this.operate(left).concat(this.operate(right));
+    }
+
+
+    var operateFunctions = {
+	'+':'operateAdd',
+	'-':'operateSub',
+	'*':'operateMult',
+	'div':'operateDiv',
+	'/':'operateDiv',
+	'mod':'operateMod',
+	'=':'operateEquals',
+	'|':'operateJoin'
+	// and
+	// or
+    };
+
+
+    
+
+    var castInt = function(value)
+    {
+	if(value instanceof Array)
+	{
+	    return value[0];
+	}
+	return value;
+    }
+
+    var castBool = function(value)
+    {
+	if(value instanceof Array)
+	{
+	    return value.length;
+	}
+	return value;
+    }
+*/
+
+
+
+
+
+
 	
     var analyseExpression = function(expression/*,root*/){
 		//console.log(expression);
