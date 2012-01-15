@@ -14,17 +14,14 @@
 		if(typeof this.l == 'object')
 		{
 			this.l.resolvePriority();
-		}
-		if(typeof this.r == 'object')
-		{
-			this.r.resolvePriority();
-		}
-		if(typeof this.l == 'object' && this.l instanceof Operation && priority[this.o] - priority[this.l.o] < 0)
-		{
-			//console.log('switch', this.l.toString(), this.o, this.r.toString());
-		    this.r = new Operation(this.l.r,this.o,this.r);
-		    this.o = this.l.o;
-		    this.l = this.l.l;
+			
+			if(this.l instanceof Operation && priority[this.o] - priority[this.l.o] < 0)
+			{
+				//console.log('switch', this.l.toString(), this.o, this.r.toString());
+			    this.r = new Operation(this.l.r,this.o,this.r);
+			    this.o = this.l.o;
+			    this.l = this.l.l;
+			}
 		}
 		return this;
 	}
@@ -34,10 +31,11 @@
 		return '(' + this.l + ' ' + this.o + ' ' + this.r + ')';
 	}
 
-	var Parenthese = function(operation)
+	var Parenthese = function(operation,type,operand)
 	{
+		this.l = operand;
 		this.o = operation;
-//		return this.resolvePriority();
+		this.t = type;
 	}
 	
 	Parenthese.prototype.resolvePriority = function()
@@ -50,120 +48,121 @@
 	
 	Parenthese.prototype.toString = function()
 	{
-		return '<' +  this.o + '>';
+		if(this.t == '(' && this.l) {
+			return this.l + '(' +  this.o + ')';
+		}
+		if(this.t == '(') {
+			return '<' +  this.o + '>';
+		}
+		if(this.t == '[') {
+			return this.l + '[' +  this.o + ']';
+		}
 	}
 
 	var Expression = function(text){
 		this.expression = text;
+		this.lastMatch = -1;
+		this.currPos = -1;
 	}
 
-	Expression.prototype.addOperation = function(i,separator,operand)
+	Expression.prototype.addOperation = function(separator,operand)
 	{
-		this.lastMatch = i;
-		if(this.operator) {
-			this.operation = new Operation(this.operation, this.operator,operand);
-		} else if(!this.operation) {
+		this.lastMatch = this.currPos;
+		if(this.operator)
+		{
+			this.operation = new Operation(this.operation, this.operator, operand);
+		}
+		else if(!this.operation)
+		{
 			this.operation = operand;
 		}
-		this.operator = separator;
 		
+		this.operator = separator;
 	}
 
-	Expression.prototype.parse = function()
+	Expression.prototype.parse = function(closeChar)
 	{
-		this.lastMatch = -1;
 		this.operator = null;
 		this.operation = null;
-		this.parenthese = null;
-		for(var i = 0; i < this.expression.length; i++)
+		this.currPos++;
+		for(;this.currPos < this.expression.length; this.currPos++)
 		{
-			var operand = this.expression.substring(this.lastMatch + 1, i).trim();
-			var remaining = this.expression.substring(i + 1).trim();
-			if(this.expression[i] in separators.tokens)
+			var operand = this.expression.substring(this.lastMatch + 1, this.currPos).trim();
+			var remaining = this.expression.substring(this.currPos + 1).trim();
+			if(this.expression[this.currPos] in separators.tokens)
 			{
-				var separator = this.expression[i];
+				var separator = this.expression[this.currPos];
 
 				if(separator == ' ')
 				{
 					var str;
 					if(str = remaining.substring(remaining.indexOf(' ')) in separators.strtokens)
 					{
-						this.addOperation(i,str,operand);
+						this.addOperation(str,operand);
 					}
 				}
 				else if(separator == '(' || separator == '[')
 				{
-					if(separator == '[')
-					{
-						this.addOperation(i, separator, operand);
-					} 
-					else if(operand.trim() && separator == '(')
-					{
-						//call function
-					} else {
-						this.addOperation(i,separator);
+					var close = ')';
+					if(separator == '['){
+						close = ']';
 					}
+					this.lastMatch = this.currPos;
+					// it does not use addOperation because this.parse need to be called inside this sequence, not before
+					if(this.operator) {
+						this.operation = new Operation(this.operation, this.operator, new Parenthese(this.parse(close),separator,operand));
+					} else if(!this.operation) {
+						this.operation = new Parenthese(this.parse(close),separator,operand);
+					}
+					this.operator = null;
 				}
-				else if(separator == ')' || separator == ']')
+				else if(separator == closeChar)
 				{
-					this.addOperation(i,null,operand);
-					
-					var op = this.operation,prec;
-					while(typeof op == 'object' && op.o != '(' && op.o != '[') {prec = op; op = op.l;}
-					this.operation = new Parenthese(this.operation);
-					console.log(this.operation.toString())
-					if(typeof op == 'object')
-					{
-						if(op.l)
-						{
-							cp = this.operation;
-							this.operation = op.l;
-							this.operation.r = cp;
-						}
-						console.log(op.toString(),prec.toString())
-						prec.l = op.r;
-					}
-					else
-					{
-						throw Error('parenthese not match');
-					}
+					this.addOperation(null,operand);
+					return this.operation;
 				}
 				else if(separator == '/')
 				{
 					if(remaining[0] == '/')
 					{
 						separator = '//';
-						i++;
+						this.currPos++;
 					}
 					
 					if(!operand.trim())
 					{
 						operand = 'root';
 					}
-					this.addOperation(i,separator,operand);
+					this.addOperation(separator,operand);
 				}
 				else
 				{
 					if(operand.trim())
 					{
-						this.addOperation(i,separator,operand);
+						this.addOperation(separator,operand);
 					}
 					else
 					{
-						if(this.operation && this.operation instanceof Parenthese)
+						if(this.operation && !this.operator)
 						{
-							this.lastMatch = i;
+							// after a parenthese
+							this.lastMatch = this.currPos;
 							this.operator = separator;
 						}
 						else if(separator != '*')
 						{
+							var s = '';
+							for(var j=0;j<this.currPos;j++){s+=' ';}
+							console.log(this.expression);
+							console.log(s + '^');
+							console.log(operand, separator, this.operation);
 							throw Error('Unexpected opeator "'+separator+'"');
 						}
 					}
 				}
 			}
 		}
-		this.addOperation(i, null, this.expression.substring(this.lastMatch + 1).trim());
+		this.addOperation(null, this.expression.substring(this.lastMatch + 1).trim());
 
 		if(typeof this.operation == 'object') {
 			this.operation.resolvePriority();
