@@ -1,64 +1,6 @@
 (function()
 {
 
-	var Operation = function(left,operator,right)
-	{
-		this.l = left;
-		this.o = operator;
-		this.r = right;
-//		return this.resolvePriority();
-	}
-	
-	Operation.prototype.resolvePriority = function()
-	{
-		if(typeof this.l == 'object')
-		{
-			this.l.resolvePriority();
-			
-			if(this.l instanceof Operation && priority[this.o] - priority[this.l.o] < 0)
-			{
-				//console.log('switch', this.l.toString(), this.o, this.r.toString());
-			    this.r = new Operation(this.l.r,this.o,this.r);
-			    this.o = this.l.o;
-			    this.l = this.l.l;
-			}
-		}
-		return this;
-	}
-	
-	Operation.prototype.toString = function()
-	{
-		return '(' + this.l + ' ' + this.o + ' ' + this.r + ')';
-	}
-
-	var Parenthese = function(operation,type,operand)
-	{
-		this.l = operand;
-		this.o = operation;
-		this.t = type;
-	}
-	
-	Parenthese.prototype.resolvePriority = function()
-	{
-		if(typeof this.o == 'object')
-		{
-			this.o.resolvePriority();
-		}
-	}
-	
-	Parenthese.prototype.toString = function()
-	{
-		if(this.t == '(' && this.l) {
-			return this.l + '(' +  this.o + ')';
-		}
-		if(this.t == '(') {
-			return '<' +  this.o + '>';
-		}
-		if(this.t == '[') {
-			return this.l + '[' +  this.o + ']';
-		}
-	}
-
 	var Expression = function(text){
 		this.expression = text;
 		this.lastMatch = -1;
@@ -68,16 +10,27 @@
 	Expression.prototype.addOperation = function(separator,operand)
 	{
 		this.lastMatch = this.currPos;
-		if(this.operator)
+		if(this.operator && operand != null)
 		{
 			this.operation = new Operation(this.operation, this.operator, operand);
 		}
-		else if(!this.operation)
+		else if(!this.operation &&  operand != null)
 		{
 			this.operation = operand;
 		}
 		
-		this.operator = separator;
+		if(separator && separator.length==1)
+		{
+			this.operator = separators.tokens[separator];
+		}
+		else if(separator)
+		{
+			this.operator = separators.strtokens[separator];
+		}
+		else
+		{
+			this.operator = null;
+		}
 	}
 
 	Expression.prototype.parse = function(closeChar)
@@ -145,9 +98,7 @@
 					{
 						if(this.operation && !this.operator)
 						{
-							// after a parenthese
-							this.lastMatch = this.currPos;
-							this.operator = separator;
+							this.addOperation(separator,operand);
 						}
 						else if(separator != '*')
 						{
@@ -169,38 +120,102 @@
 		}
 		return this.operation;
 	}
-
-	Expression.prototype.execute = function(data,root)
+	
+	
+	var Operation = function(left,operator,right)
 	{
-		if(typeof operation == 'string')
+		this.l = left;
+		this.o = operator;
+		this.r = right;
+//		return this.resolvePriority();
+	}
+	
+	Operation.prototype.resolvePriority = function()
+	{
+		if(typeof this.l == 'object')
 		{
-		    var i = parseInt(operation);
-
-		    if(isNaN(i) || i.toString() != operation)
-		    {
-				return evaluatePath(operation,this.data,this.root);
-		    }
-		    return i;
+			this.l.resolvePriority();
+			
+			if(this.l instanceof Operation && this.o.priority > this.l.o.priority)
+			{
+				//console.log('switch', this.l.toString(), this.o, this.r.toString());
+			    this.r = new Operation(this.l.r,this.o,this.r);
+			    this.o = this.l.o;
+			    this.l = this.l.l;
+			}
 		}
-		else
+		return this;
+	}
+	
+	Operation.prototype.toString = function()
+	{
+		return '(' + this.l + ' ' + this.o.str + ' ' + this.r + ')';
+	}
+	
+	Operation.prototype.result = function(data,root)
+	{
+		var left = this.l;
+		if(typeof left == 'object')
 		{
-		    return this[operateFunctions[operation.operator]](operation.left,operation.right);
+		    left = left.result(data,root);
+		}
+		
+		var right = this.r;
+		if(typeof right == 'object')
+		{
+		    right = right.result(data,root);
+		}
+
+		return this.o.operate(left,right);
+	}
+
+	var Parenthese = function(operation,type,operand)
+	{
+		this.l = operand;
+		this.o = operation;
+		this.t = type;
+	}
+	
+	Parenthese.prototype.resolvePriority = function()
+	{
+		if(typeof this.o == 'object')
+		{
+			this.o.resolvePriority();
 		}
 	}
+	
+	Parenthese.prototype.toString = function()
+	{
+		if(this.t == '(' && this.l) {
+			return this.l + '(' +  this.o + ')';
+		}
+		if(this.t == '(') {
+			return '<' +  this.o + '>';
+		}
+		if(this.t == '[') {
+			return this.l + '[' +  this.o + ']';
+		}
+	}
+	
+	Parenthese.prototype.result = function(data,root)
+	{
+		return this.o.result(data,root);
+	}
+
+
+
 	var operators = {
-		'predicate':{priority:1},
-		'parenthese':{priority:2},
-		'child':{priority:4},
-		'deepChild':{priority:4},
-		'modulo':{priority:6},
-		'divide':{priority:8},
-		'multiply':{priority:8},
-		'add':{priority:10},
-		'substract':{priority:10},
-		'union':{priority:12},
-		'equals':{priority:15},
-		'and':{priority:18},
-		'or':{priority:20},
+		'child':{priority:40, str:'/'},
+		'deepChild':{priority:40, str:'//'},
+		'modulo':{priority:35, str:'%'},
+		'divide':{priority:30, str:'/'},
+		'multiply':{priority:30, str:'*'},
+		'add':{priority:20, str:'+'},
+		'substract':{priority:20, str:'-'},
+		'union':{priority:15, str:'|'},
+		'equal':{priority:10, str:'='},
+		'and':{priority:5, str:'and'},
+		'or':{priority:1, str:'or'},
 	}
 
 	// http://saxon.sourceforge.net/saxon6.5/expressions.html
@@ -210,7 +225,7 @@
 			'-': operators.substract,
 			'*': operators.multiply,
 			'/': operators.child,
-			'=': operators.equals,
+			'=': operators.equal,
 			'|': operators.union,
 			' ': null,
 			'[': operators.predicate,
@@ -223,44 +238,45 @@
 			'div': operators.divide,
 			'and': operators.and,
 			'or':  operators.or,
-			'//':  operators.descendant
+			'//':  operators.deepChild
 		}
     };
 
-/*
-    Query.prototype.operateAdd = function(left,right)
+
+    operators.add.operate = function(left,right)
     {
-		return castInt(this.operate(left)) + castInt(this.operate(right));
+		return castInt(left) + castInt(right);
+    }
+
+    operators.substract.operate = function(left,right)
+    {
+		return castInt(left) - castInt(right);
+    }    
+
+    operators.multiply.operate = function(left,right)
+    {
+		return castInt(left) * castInt(right);
     }
     
-    Query.prototype.operateMult = function(left,right)
+    operators.divide.operate = function(left,right)
     {
-		return castInt(this.operate(left)) * castInt(this.operate(right));
+		return castInt(left) / castInt(right);
     }
     
-    Query.prototype.operateDiv = function(left,right)
+    operators.modulo.operate = function(left,right)
     {
-	return castInt(this.operate(left)) / castInt(this.operate(right));
+		return castInt(left) % castInt(right);
     }
     
-    Query.prototype.operateMod = function(left,right)
-    {
-	return castInt(this.operate(left)) % castInt(this.operate(right));
-    }
+
     
-    Query.prototype.operateSub = function(left,right)
+    operators.equal.operate = function(left,right)
     {
-	return castInt(this.operate(left)) - castInt(this.operate(right));
-    }
-    
-    Query.prototype.operateEquals = function(left,right)
-    {
-		var resLeft = this.operate(left);
-		if (resLeft instanceof Array)
+		if (left instanceof Array)
 	    {
-	        for (var i = 0; i < resLeft.length; i++)
+	        for (var i = 0; i < left.length; i++)
 	        {
-				if(operateEquals(resLeft,right))
+				if(operators.equal.operate(left,right))
 				{
 				    return true;
 				}
@@ -269,69 +285,127 @@
 		}
 		else
 		{
-		    var resRight = this.operate(right);
-		    if (resRight instanceof Array)
+		    if (right instanceof Array)
 		    {
-				for (var i = 0; i < resRight.length; i++)
+				for (var i = 0; i < right.length; i++)
 				{
-				    if(operateEquals(resLeft,resRight))
+				    if(operators.equal.operate(left,right))
 				    {
 						return true;
 				    }
 				}
 				return false;
 		    }
-		    return resLeft == resRight;
+		    return left == right;
 		}
     }
 
-    Query.prototype.operateJoin = function(left,right)
+    operators.union.operate = function(left,right)
     {
 		return this.operate(left).concat(this.operate(right));
     }
-
-
-    var operateFunctions = {
-	'+':'operateAdd',
-	'-':'operateSub',
-	'*':'operateMult',
-	'div':'operateDiv',
-	'/':'operateDiv',
-	'mod':'operateMod',
-	'=':'operateEquals',
-	'|':'operateJoin'
-	// and
-	// or
-    };
-
-
     
 
     var castInt = function(value)
     {
-	if(value instanceof Array)
-	{
-	    return value[0];
-	}
-	return value;
+		if(value instanceof Array)
+		{
+		    value = value[0];
+		}
+	    var i = parseInt(value);
+
+	    if(isNaN(i) || i.toString() != value)
+	    {
+			throw Error('value "' + value + '" is not a int')
+		}
+		return i;
     }
 
     var castBool = function(value)
     {
-	if(value instanceof Array)
-	{
-	    return value.length;
-	}
-	return value;
+		if(value instanceof Array)
+		{
+		    return value.length;
+		}
+		return value;
     }
-*/
 
 
 
-
-
-
+    /**** MAIN JPATH OBJECT DECLARATION ****/
+    /*var JPath = function(data,root) {
+        var set;
+        if (data instanceof Array)
+        {
+            set = data;
+        }
+        else
+        {
+            set = [];
+            if (data){ set.push(data); }
+        }
 	
+		if(root){
+		    set.root = root;
+		}
+
+
+        set.q = function(path,callback) 
+		{
+		    var results = query(path, set, root);
+		    if(callback)
+			{
+				for (var i = 0; i < results.length; i++)
+				{
+				    callback(i,results[i]);
+				}
+		    }
+            return results;
+        };
+	
+		set.query = set.q;
+
+        set.count = function(path) {
+            return query(path,set,root).length;
+        };
+
+        set.sum = function(path) {
+	    	var sum = 0;
+            set.q(path, function(i,e){
+				sum += e;
+	    	});
+	    	return sum;
+        };
+
+        set.exists = function(path) {
+            return query(path,set,root).length > 0;
+        };
+
+        set.valueOf = function(path) {
+	    return values(query(path,set,root)).join();
+        };
+
+        set.copyOf = function(path) {
+            return JSON.stringify(query(path,set,root));
+        };
+
+		var query = function(){}
+
+        return set;
+    };
+*/
+	window.Expression = Expression;
+
+}());
+
+
+
+
+
+
+
+(function()
+{
     var analyseExpression = function(expression/*,root*/){
 		//console.log(expression);
 		var separators = /^([\/\w\*\[\]]*)\s+(\+|\/|-|\*|div|mod|\||or|and|\(|\[|=)\s+(.*)$/;
@@ -807,10 +881,4 @@
     };
 	
 	window.JPath = JPath;
-	JPath.functions = {};
-	JPath.functions.parse = function(str){
-		var exp = new Expression(str);
-		return exp.parse();
-		
-	}
 } ());
