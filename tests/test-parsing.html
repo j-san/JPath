@@ -22,25 +22,25 @@ $(document).ready(function(){
 			{ exp:'(1+2+3)+5-2',expected:'((<((1 + 2) + 3)> + 5) - 2)',result:9},
 			{ exp:'(1 + 2 * 3) + 5 * 2',expected:'(<(1 + (2 * 3))> + (5 * 2))',result:17},
 			{ exp:'2 + 2 = 5',expected:'((2 + 2) = 5)',result:false},
-			{ exp:'4+6/(2+4)',expected:'(4 + (6 / <(2 + 4)>))',result:5},
-			{ exp:'4+6/(2+4)+5',expected:'((4 + (6 / <(2 + 4)>)) + 5)',result:5},
-			{ exp:'4+6-(2*2+4)-3',expected:'(((4 + 6) - <((2 * 2) + 4)>) - 3)',result:5},
-			{ exp:'4+6-(2*(2+4)-5)-3',expected:'(((4 + 6) - <((2 * <(2 + 4)>) - 5)>) - 3)',result:5},
-			{ exp:'4 + 2 * 9 / 3 * 2',expected:'(4 + (((2 * 9) / 3) * 2))',result:16},
+			{ exp:'4+6 div (2+4)',expected:'(4 + (6 / <(2 + 4)>))',result:5},
+			{ exp:'4+6 div (2+4)+5',expected:'((4 + (6 / <(2 + 4)>)) + 5)',result:10},
+			{ exp:'4+6-(2*2+4)-3',expected:'(((4 + 6) - <((2 * 2) + 4)>) - 3)',result:-1},
+			{ exp:'4+6-(2*(2+4)-5)-3',expected:'(((4 + 6) - <((2 * <(2 + 4)>) - 5)>) - 3)',result:0},
+			{ exp:'4 + 2 * 9 div 3 * 2',expected:'(4 + (((2 * 9) / 3) * 2))',result:16},
 			{ exp:'toto', expected:'toto' },
 			{ exp:'toto/foo', expected:'(toto / foo)' },
-			{ exp:'/toto/foo', expected:'((root / toto) / foo)' },
-			{ exp:'/toto/foo/', expected:'(((root / toto) / foo) / )' },
+			{ exp:'/toto/foo', expected:'(( / toto) / foo)' },
+			{ exp:'/toto/foo/', expected:'((( / toto) / foo) / )' },
 			{ exp:'toto/foo/', expected:'((toto / foo) / )' },
 			{ exp:'a/aa', expected:'(a / aa)' },
-			{ exp:'//foo/', expected:'((root // foo) / )' },
+			{ exp:'//foo/', expected:'(( // foo) / )' },
 			{ exp:'a/*', expected:'(a / *)' },
 			{ exp:'a//*', expected:'(a // *)' },
 			{ exp:'a/a/*', expected:'((a / a) / *)' },
 			{ exp:'hello[bar]', expected:'hello[bar]' },
 			{ exp:'a/a[p]', expected:'(a / a[p])' },
-			{ exp:'//hello[foobar/foo]', expected:'(root // hello[(foobar / foo)])' },
-			{ exp:'//foo[//foo]', expected:'(root // foo[(root // foo)])' },
+			{ exp:'//hello[foobar/foo]', expected:'( // hello[(foobar / foo)])' },
+			{ exp:'//foo[//foo]', expected:'( // foo[( // foo)])' },
 			{ exp:'a/*[2]', expected:'(a / *[2])' },
 			{ exp:'a/a[0]', expected:'(a / a[0])' },
 			{ exp:'a', expected:'a' },
@@ -58,7 +58,7 @@ $(document).ready(function(){
 	});
 
 	test("resolution", function() {
-		expect(17);
+		expect(13);
 
 		tests.q('/asserts[result]',function(i,test){
 			var result = new Expression(test.exp).parse().result();

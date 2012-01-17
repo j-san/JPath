@@ -48,9 +48,10 @@
 
 				if(separator == ' ')
 				{
-					var str;
-					if(str = remaining.substring(remaining.indexOf(' ')) in separators.strtokens)
+					var str = remaining.substring(0,remaining.indexOf(' '));
+					if(str in separators.strtokens)
 					{
+						this.currPos += str.length + 1;
 						this.addOperation(str,operand);
 					}
 				}
@@ -82,10 +83,10 @@
 						this.currPos++;
 					}
 					
-					if(!operand.trim())
+					/*if(!operand.trim())
 					{
 						operand = 'root';
-					}
+					}*/
 					this.addOperation(separator,operand);
 				}
 				else
@@ -152,24 +153,24 @@
 		return '(' + this.l + ' ' + this.o.str + ' ' + this.r + ')';
 	}
 	
-	Operation.prototype.result = function(data,root)
+	Operation.prototype.result = function(data, root)
 	{
 		var left = this.l;
 		if(typeof left == 'object')
 		{
-		    left = left.result(data,root);
+		    left = left.result(data, root);
 		}
 		
 		var right = this.r;
 		if(typeof right == 'object')
 		{
-		    right = right.result(data,root);
+		    right = right.result(data, root);
 		}
 
-		return this.o.operate(left,right);
+		return this.o.operate(left, right, data, root);
 	}
 
-	var Parenthese = function(operation,type,operand)
+	var Parenthese = function(operation, type, operand)
 	{
 		this.l = operand;
 		this.o = operation;
@@ -197,9 +198,9 @@
 		}
 	}
 	
-	Parenthese.prototype.result = function(data,root)
+	Parenthese.prototype.result = function(data, root)
 	{
-		return this.o.result(data,root);
+		return this.o.result(data, root);
 	}
 
 
@@ -243,40 +244,40 @@
     };
 
 
-    operators.add.operate = function(left,right)
+    operators.add.operate = function(left, right)
     {
 		return castInt(left) + castInt(right);
     }
 
-    operators.substract.operate = function(left,right)
+    operators.substract.operate = function(left, right)
     {
 		return castInt(left) - castInt(right);
     }    
 
-    operators.multiply.operate = function(left,right)
+    operators.multiply.operate = function(left, right)
     {
 		return castInt(left) * castInt(right);
     }
     
-    operators.divide.operate = function(left,right)
+    operators.divide.operate = function(left, right)
     {
 		return castInt(left) / castInt(right);
     }
     
-    operators.modulo.operate = function(left,right)
+    operators.modulo.operate = function(left, right)
     {
 		return castInt(left) % castInt(right);
     }
     
 
     
-    operators.equal.operate = function(left,right)
+    operators.equal.operate = function(left, right)
     {
 		if (left instanceof Array)
 	    {
 	        for (var i = 0; i < left.length; i++)
 	        {
-				if(operators.equal.operate(left,right))
+				if(operators.equal.operate(left, right))
 				{
 				    return true;
 				}
@@ -289,7 +290,7 @@
 		    {
 				for (var i = 0; i < right.length; i++)
 				{
-				    if(operators.equal.operate(left,right))
+				    if(operators.equal.operate(left, right))
 				    {
 						return true;
 				    }
@@ -300,13 +301,127 @@
 		}
     }
 
-    operators.union.operate = function(left,right)
+    operators.union.operate = function(left, right)
     {
-		return this.operate(left).concat(this.operate(right));
+		return left.concat(right);
+    }
+
+    operators.child.operate = function(left, right, data, root)
+    {
+		if(typeof left == 'string' && left != '')
+		{
+			left = filterSet(data, left, false);
+		}
+		if(!right)
+		{
+			return left;
+		}
+		
+		if(left)
+		{
+			return filterSet(left, right, false);
+		}
+		else
+		{
+			return filterSet(root, right, false);
+		}
+    }
+
+    operators.deepChild.operate = function(left,right, data, root)
+    {
+		if(typeof left == 'string' && left != '')
+		{
+			left = filterSet(data, left, true);
+		}
+		if(!right)
+		{
+			throw Error('A path can not terminate with //');
+		}
+		
+		if(left)
+		{
+			return filterSet(left, right, true);
+		}
+		else
+		{
+			return filterSet(root, right, true);
+		}
     }
     
+    function getInside(data, callback)
+    {
+        if (data instanceof Array)
+        {
+            for (var i = 0; i < data.length; i++)
+            {
+                if (data[i] instanceof Array)
+                {
+                    getInside(data[i],callback);
+                }
+                else 
+                {
+                    callback(data[i]);
+                }
+            }
+        }
+        else
+        {
+            callback(data);
+        }
+    }
 
-    var castInt = function(value)
+    var filterSet = function(set, filter, deep)
+    {
+		var results = [];
+		if(filter == '*')
+		{
+		    getInside(set, function(o)
+		    {
+				if(typeof o == 'object')
+				{
+				    for(k in o)
+				    {
+						results.push(o[k]);
+						if(deep)
+						{
+						    results = results.concat(filterSet(o[k], filter, true));
+						}
+				    }
+				}
+		    });
+		}
+        else
+        {
+            getInside(set, function(o)
+            {
+                if(typeof o == 'object')
+                {
+                    if(filter in o)
+                    {
+						//todo put in a function "add" and do it recursively
+						if(o[filter] instanceof Array)
+						{
+			            	results = results.concat(o[filter]);
+						}
+						else
+						{
+			             	results.push(o[filter]);
+						}
+                    }
+                    if(deep)
+                    { // return all match in tree
+                        for(k in o)
+                        {
+                            results = results.concat(filterSet(o[k], filter, true));
+                        }
+                    }
+               }
+            });
+        }
+        return results;
+    }
+
+    function castInt(value)
     {
 		if(value instanceof Array)
 		{
@@ -321,7 +436,7 @@
 		return i;
     }
 
-    var castBool = function(value)
+    function castBool(value)
     {
 		if(value instanceof Array)
 		{
@@ -331,9 +446,33 @@
     }
 
 
+    function values(set)
+    {
+		var data = [];
+	
+		getInside(set, function(o)
+		{
+		    if(typeof o == 'object')
+		    {
+				for(k in o)
+				{
+				    data = data.concat(values(o[k]));
+				}
+		    }
+		    else
+		    {
+				data.push(o);
+		    }
+		});
+
+		return data;
+    }
+
+
+
 
     /**** MAIN JPATH OBJECT DECLARATION ****/
-    /*var JPath = function(data,root) {
+    var JPath = function(data,root) {
         var set;
         if (data instanceof Array)
         {
@@ -344,15 +483,28 @@
             set = [];
             if (data){ set.push(data); }
         }
-	
-		if(root){
+
+        if (root instanceof Array)
+		{
 		    set.root = root;
 		}
+		else
+        {
+            set.root = [];
+            if (root)
+			{
+	 			set.root.push(root);
+	 		}
+			else
+			{
+				set.root = set.root.concat(set);
+			}
+        }
 
 
         set.q = function(path,callback) 
 		{
-		    var results = query(path, set, root);
+		    var results = query(path, set);
 		    if(callback)
 			{
 				for (var i = 0; i < results.length; i++)
@@ -366,7 +518,7 @@
 		set.query = set.q;
 
         set.count = function(path) {
-            return query(path,set,root).length;
+            return query(path,set).length;
         };
 
         set.sum = function(path) {
@@ -378,23 +530,36 @@
         };
 
         set.exists = function(path) {
-            return query(path,set,root).length > 0;
+            return query(path,set).length > 0;
         };
 
         set.valueOf = function(path) {
-	    return values(query(path,set,root)).join();
+	    	return values(query(path,set)).join();
         };
 
         set.copyOf = function(path) {
-            return JSON.stringify(query(path,set,root));
+            return JSON.stringify(query(path,set));
         };
-
-		var query = function(){}
 
         return set;
     };
-*/
+
+	var query = function(path, data)
+	{
+		if(!path)
+		{
+			return data;
+		}
+		var operation = new Expression(path).parse();
+		
+		if(typeof operation == 'string')
+		{
+			return filterSet(data, operation, false);
+		}
+		return operation.result(data, data.root);
+	}
 	window.Expression = Expression;
+	window.JPath = JPath;
 
 }());
 
@@ -881,4 +1046,4 @@
     };
 	
 	window.JPath = JPath;
-} ());
+});

@@ -77,7 +77,7 @@ $(document).ready(function(){
 		});
 
 	});
-	console.log(tests);
+	
   	test("count(path) test", function() {
 		var c = 0;
 		for(var i=0;i<tests[0].assertEquals.length;i++){
@@ -89,6 +89,7 @@ $(document).ready(function(){
 			equal(set.count(test.path), test.count, "set.count(" + test.path + ")");
 		});
 	});
+	
   	test("valueOf(path) test", function() {
 		var c = 0;
 		for(var i=0;i<tests[0].assertEquals.length;i++){
@@ -100,6 +101,7 @@ $(document).ready(function(){
 			equal(set.valueOf(test.path), test.values, "set.count(" + test.path + ") return " + set.valueOf(test.path));
 		});
 	});
+	
   	test("sum(path) test", function() {
 		var c = 0;
 		for(var i=0;i<tests[0].assertEquals.length;i++){
@@ -111,6 +113,7 @@ $(document).ready(function(){
 			equal(set.sum(test.path), test.sum, "set.sum(" + test.path + ") return " + set.sum(test.path));
 		});
 	});
+	
 	test("raise test", function() {
 		expect(tests[0].assertErrors.length);
 		tests.q('/assertErrors',function(i,test){
@@ -136,7 +139,7 @@ $(document).ready(function(){
 	    ]
 	    
 	    for(var i=0;i < tests.length;i++){
-		equal(set.q(tests[i].exp), tests[i].result, tests[i].exp + ' => ' + tests[i].result + ' - ' + set.q(tests[i].exp));
+			equal(set.q(tests[i].exp), tests[i].result, tests[i].exp + ' => ' + tests[i].result + ' - ' + set.q(tests[i].exp));
 	    }
 	});
 });
