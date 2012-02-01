@@ -35,8 +35,8 @@ $(document).ready(function(){
 		toto: { foo: 'foo3', fifi: 'fifi' }
 	};
 
-	var set = JPath(data);
-	var tests = JPath({
+	var set = new JPath(data);
+	var tests = new JPath({
 		assertEquals:[
 			{ path:'toto', expected:[{ foo: 'foo3', fifi: 'fifi' }],values:'foo3,fifi' },
 			{ path:'toto/foo', expected:['foo3'], count:1, values:'foo3' },
@@ -53,6 +53,7 @@ $(document).ready(function(){
  			{ path:'//foo/', expected:['foo1','foo2','foo3'] , count:3},
 			{ path:'hello[bar]', expected:[{bar: 'bar',baz: 'baz',foobar: {foo: 'foo1',bar: 'bar',baz: 'baz'}}] , count:1},
 			{ path:'a/a[p]', expected:[{ p:'p', q:'q', r:'r', foo:'foo2' }] , count:1},
+			{ path:'hello[foobar/foo]', expected:[{bar: 'bar',baz: 'baz',foobar: {foo: 'foo1',bar: 'bar',baz: 'baz'}}] , count:1},
 			{ path:'//hello[foobar/foo]', expected:[{bar: 'bar',baz: 'baz',foobar: {foo: 'foo1',bar: 'bar',baz: 'baz'}}] , count:1},
 			{ path:'//foo[//foo]', expected:[] , count:0},
 			{ path:'a/*[2]', expected:[3] , count:1},
@@ -71,6 +72,7 @@ $(document).ready(function(){
 	test("q(path) test", function() {
 		expect(tests[0].assertEquals.length);
 		tests.q('/assertEquals',function(i,test){
+			console.log('---')
 			var results = set.q(test.path);
 			deepEqual(results, test.expected, "set.q(" + test.path + ")");
 

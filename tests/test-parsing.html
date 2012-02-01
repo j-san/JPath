@@ -7,8 +7,7 @@
 		<script>
 $(document).ready(function(){
 
-
-	var tests = JPath({
+	var tests = new JPath({
 		asserts:[
 			{ exp:'1 + 2 + 3 + 4',expected:'(((1 + 2) + 3) + 4)',result:10},
 			{ exp:'4 + 2 = 5',expected:'((4 + 2) = 5)',result:false},
@@ -37,15 +36,17 @@ $(document).ready(function(){
 			{ exp:'a/*', expected:'(a / *)' },
 			{ exp:'a//*', expected:'(a // *)' },
 			{ exp:'a/a/*', expected:'((a / a) / *)' },
-			{ exp:'hello[bar]', expected:'hello[bar]' },
-			{ exp:'a/a[p]', expected:'(a / a[p])' },
-			{ exp:'//hello[foobar/foo]', expected:'( // hello[(foobar / foo)])' },
-			{ exp:'//foo[//foo]', expected:'( // foo[( // foo)])' },
-			{ exp:'a/*[2]', expected:'(a / *[2])' },
-			{ exp:'a/a[0]', expected:'(a / a[0])' },
+			{ exp:'hello[bar]', expected:'(hello # [bar])' },
+			{ exp:'a/a/a[p]', expected:'(((a / a) / a) # [p])' },
+			{ exp:'//hello[foobar/foo]', expected:'(( // hello) # [(foobar / foo)])' },
+			{ exp:'//foo[//foo]', expected:'(( // foo) # [( // foo)])' },
+			{ exp:'a/*[2]', expected:'((a / *) # [2])' },
+			{ exp:'a/a[0]', expected:'((a / a) # [0])' },
 			{ exp:'a', expected:'a' },
-			{ exp:'a[a]', expected:'a[a]' },
-			{ exp:'a/*[2] + 2', expected:'((a / *[2]) + 2)' }
+			{ exp:'a[a]', expected:'(a # [a])' },
+			{ exp:'a/*[2] + 2', expected:'(((a / *) # [2]) + 2)' },
+			{ exp:'a/*[a+2]', expected:'((a / *) # [(a + 2)])' },
+			{ exp:'a/*[a=(b+2)]', expected:'((a / *) # [(a = <(b + 2)>)])' }
 		]
 	});
 	
@@ -58,7 +59,7 @@ $(document).ready(function(){
 	});
 
 	test("resolution", function() {
-		expect(13);
+		expect(16);
 
 		tests.q('/asserts[result]',function(i,test){
 			var result = new Expression(test.exp).parse().result();
