@@ -369,7 +369,7 @@
 		var result = [];
 		if(left)
 		{
-			if(typeof right == 'object')
+			if(typeof right.o == 'object')
 			{
 				for(i in left) {
 					var e = right.result(left[i], root);
@@ -378,13 +378,20 @@
 					}
 				}
 			}
-			else if(typeof right == 'string')
+			else if(typeof right.o == 'string')
 			{
-				for(i in left) {
-					var e = operators.child.operate(left[i], right, data, root);
-					if(e && e.length) {
+				try {
+					var i = castInt(right.o);
+					if(i in left) {
 						result.push(left[i]);
 					}
+				} catch(e) {
+					for(i in left) {
+						var e = operators.child.operate(left[i], right.o, data, root);
+						if(e && e.length) {
+							result.push(left[i]);
+						}
+					}					
 				}
 			}
 		}
@@ -520,7 +527,10 @@
 	{
         if (data instanceof Array)
         {
-            this.concat(data);
+			for(var i in data){
+				this.push(data[i]);
+			}
+            //this.concat(data)
         }
         else if (data)
 		{
@@ -571,7 +581,8 @@
 			    callback(i,results[i]);
 			}
 	    }
-        return results;
+		return new JPath(results);
+        // return results;
     };
 
 	JPath.prototype.query = JPath.prototype.q;
@@ -597,7 +608,11 @@
     };
 
     JPath.prototype.copyOf = function(path) {
-        return JSON.stringify(this.query(path));
+        return JSON.stringify(this.query(path).asArray());
+    };
+
+    JPath.prototype.asArray = function() {
+		return this.slice(0);
     };
 
 	//JPath.prototype.sort = function(path) {}
