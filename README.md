@@ -6,10 +6,12 @@ usage
 -----
 
     var d = new JPath(data)
-Create a new examinable data set.
+Create a new examinable data set. JPath extends Array,
+get free to use Array functions on JPath like push or slice.
 
     d.q(path, function) or JPath.query([path][, function])
-Return a subset of JPath, if callback is specified, callback is called for each matching elements.
+Return a subset of JPath, if callback is specified, callback 
+is called for each matching elements.
 
     d.count([path])
 Return the number of matching elements by path.
