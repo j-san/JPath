@@ -130,17 +130,18 @@ $(document).ready(function(){
 	    var tests = [
 		{exp:'1 + 2 + 3 + 4',result:10},
 		{exp:'4 + 2 = 5',result:false},
+		{exp:'4 + 2 = 6',result:true},
 		{exp:'8 + 7 * 2',result:22},
 		{exp:'8 * 7 + 2',result:58},
 		{exp:'4 + 2 = 9 - 3',result:true},
 		{exp:'1 + 2 = 5 - 2',result:true},
 		{exp:'2 + 2 = 5',result:false},
-		{exp:'4 + 6 / 3 + 8',result:14},
-		{exp:'4 + 2 * 9 / 3 * 2',result:16}
+		{exp:'4 + 6 div 3 + 8',result:14},
+		{exp:'4 + 2 * 9 div 3 * 2',result:16}
 	    ]
 	    
 	    for(var i=0;i < tests.length;i++){
-			equal(set.q(tests[i].exp).asArray(), tests[i].result, tests[i].exp + ' => ' + tests[i].result + ' - ' + set.q(tests[i].exp).asArray());
+			equal(set.q(tests[i].exp)[0], tests[i].result, tests[i].exp + ' => ' + tests[i].result + ' - ' + set.q(tests[i].exp));
 	    }
 	});
 });

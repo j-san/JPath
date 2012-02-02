@@ -532,7 +532,7 @@
 			}
             //this.concat(data)
         }
-        else if (data)
+        else if (data != null)
 		{
 			this.push(data);
         }
@@ -543,7 +543,7 @@
 		}
 		else
         {
-            if (root)
+            if (root != null)
 			{
             	this.root = [];
 	 			this.root.push(root);
@@ -561,6 +561,13 @@
 		var results;
 		if(!path)
 		{
+		    if(callback)
+			{
+				for (var i = 0; i < this.length; i++)
+				{
+				    callback(i,this[i]);
+				}
+		    }
 			return this;
 		}
 		var operation = new Expression(path).parse();
@@ -573,7 +580,6 @@
 		{
 			results = operation.result(this, this.root);
 		}
-		
 	    if(callback)
 		{
 			for (var i = 0; i < results.length; i++)
@@ -596,7 +602,7 @@
         this.query(path, function(i,e){
 			sum += e;
     	});
-    	return sum;
+   		return sum;
     };
 
     JPath.prototype.exists = function(path) {
