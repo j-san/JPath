@@ -584,7 +584,7 @@
 		{
 			for (var i = 0; i < results.length; i++)
 			{
-			    callback(i,results[i]);
+			    callback(i,new JPath(results[i]));
 			}
 	    }
 		return new JPath(results);
