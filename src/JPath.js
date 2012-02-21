@@ -525,9 +525,13 @@
     /**** MAIN JPATH OBJECT DECLARATION ****/
     var JPath = function(data,root)
 	{
+		if (data instanceof JPath)
+        {
+			return data;
+        }
         if (data instanceof Array)
         {
-			for(var i in data){
+			for(var i in data) {
 				this.push(data[i]);
 			}
             //this.concat(data)
