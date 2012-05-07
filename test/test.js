@@ -1,5 +1,4 @@
 (function() {
-	console.log(JPath);
 	var data = {
 		hello: {
 			bar: 'bar',
