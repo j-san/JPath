@@ -20,6 +20,6 @@
  		"qunit": "0.2.x"
    },
    "scripts": {
-   		"test": "node test/test.js"
+   		"test": "node test/index.js"
    }
 }
