@@ -1,6 +1,8 @@
 
 JPath is a tool for riding through json using an XPath syntax.
 
+Travis CI tracker: http://travis-ci.org/#!/j-san/JPath
+[![Build Status](https://secure.travis-ci.org/j-san/JPath.png?branch=master)](http://travis-ci.org/j-san/JPath)
 
 usage
 -----

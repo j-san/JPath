@@ -526,9 +526,9 @@
     var JPath = function(data,root)
 	{
 		if (data instanceof JPath)
-        {
+		{
 			return data;
-        }
+		}
         if (data instanceof Array)
         {
 			for(var i in data) {
@@ -588,7 +588,7 @@
 		{
 			for (var i = 0; i < results.length; i++)
 			{
-			    callback(i,new JPath(results[i]));
+			    callback(i,results[i]);
 			}
 	    }
 		return new JPath(results);
