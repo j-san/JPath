@@ -1,0 +1,25 @@
+{
+   "name": "JPath",
+   "version": "0.1.0",
+   "description": "",
+   "homepage": "https://github.com/j-san/JPath",
+   "keywords": [ ],
+   "maintainers": [
+        {
+            "name": "Jonathan Sanchez",
+            "email": "",
+            "web": "http://j-san.github.com" 
+        } 
+   ],
+   "licenses": [ { "type": "MIT", "url": "http://mit-license.org/" } ],
+   "repositories": [ { "type": "git", "url": "https://github.com/j-san/JPath.git" } ],
+   "main": "",
+
+
+   "devDependencies": { 
+ 		"qunit": "0.2.x"
+   },
+   "scripts": {
+   		"test": "node test/test.js"
+   }
+}
