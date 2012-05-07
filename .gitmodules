@@ -1,0 +1,3 @@
+[submodule "travis-ci-node-and-browser-qunit"]
+	path = lib/travis-ci-node-and-browser-qunit
+	url = https://github.com/keithamus/travis-ci-node-and-browser-qunit.git
