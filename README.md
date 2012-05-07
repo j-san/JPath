@@ -6,6 +6,7 @@ JPath is a tool for riding through json using an XPath syntax.
 JPath is Node.js complient
 
 install:
+
     npm install JPath
 
 Travis CI tracker: http://travis-ci.org/#!/j-san/JPath
