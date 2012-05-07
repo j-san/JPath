@@ -627,8 +627,13 @@
 
 	//JPath.prototype.sort = function(path) {}
 	//JPath.prototype.distinct = function(path) {}
-
-	window.Expression = Expression;
-	window.JPath = JPath;
+	if(typeof(window) != 'undefined') {
+		window.Expression = Expression;
+		window.JPath = JPath;
+	}
+	if(typeof(exports) != 'undefined') {
+		exports.Expression = Expression;
+		exports.JPath = JPath;
+	}
 
 }());
