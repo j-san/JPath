@@ -204,7 +204,6 @@
 	};
 
 
-
     function castInt(value) {
 		if (value instanceof Array) {
 		    value = value[0];
@@ -222,6 +221,58 @@
 		}
 		return value;
     }
+
+
+    function getInside(data, callback) {
+		var i;
+        if (data instanceof Array) {
+            for (i = 0; i < data.length; i += 1) {
+                if (data[i] instanceof Array) {
+                    getInside(data[i], callback);
+                } else {
+                    callback(data[i]);
+                }
+            }
+        } else {
+            callback(data);
+        }
+    }
+
+    function filterSet(set, filter, deep) {
+		var results = [];
+		if(filter === '*') {
+		    getInside(set, function (o) {
+				if (typeof o === 'object') {
+				    for (k in o) {
+						results.push(o[k]);
+						if (deep && (typeof o[k] === 'object' || typeof o[k] === 'array')) {
+						    results = results.concat(filterSet(o[k], filter, true));
+						}
+				    }
+				}
+		    });
+		} else {
+            getInside(set, function (o) {
+                if (typeof o === 'object') {
+                    if (filter in o) {
+						//todo put in a function "add" and do it recursively
+						if(o[filter] instanceof Array) {
+			            	results = results.concat(o[filter]);
+						} else {
+			             	results.push(o[filter]);
+						}
+                    }
+                    if (deep) { // return all match in tree
+                        for (k in o) {
+                            results = results.concat(filterSet(o[k], filter, true));
+                        }
+                    }
+               }
+            });
+        }
+        return results;
+    }
+
 
     operators.add.operate = function (left, right) {
 		return castInt(left) + castInt(right);
@@ -270,44 +321,42 @@
     };
 
     operators.child.operate = function (left, right, data, root) {
-		if(typeof left === 'string' && left != '') {
+		if (typeof left === 'string' && left !== '') {
 			left = filterSet(data, left, false);
 		}
-		if(!right) {
+		if (!right) {
 			return left;
 		}
 
-		if(left) {
+		if (left) {
 			return filterSet(left, right, false);
 		}
 		return filterSet(root, right, false);
     };
 
     operators.deepChild.operate = function (left, right, data, root) {
-		if(typeof left === 'string' && left !== '') {
+		if (typeof left === 'string' && left !== '') {
 			left = filterSet(data, left, false);
 		}
-		if(!right) {
+		if (!right) {
 			throw new Error('A path can not terminate with //');
 		}
-		
-		if(left) {
+
+		if (left) {
 			return filterSet(left, right, true);
 		}
 		return filterSet(root, right, true);
-		
     };
 
     operators.predicate.operate = function (left, right, data, root) {
-		var e, i;
-		if(typeof left === 'string' && left !== '') {
+		var  result = [], e, i;
+		if (typeof left === 'string' && left !== '') {
 			left = filterSet(data, left, false);
 		}
-		if(!right) {
+		if (!right) {
 			throw new Error('Syntax error, content of [???]');
 		}
-		
-		var result = [];
+
 		if (left) {
 			if (typeof right.o === 'object') {
 				for (i in left) {
@@ -316,10 +365,9 @@
 						result.push(left[i]);
 					}
 				}
-			}
-			else if (typeof right.o === 'string') {
+			} else if (typeof right.o === 'string') {
 				try {
-					var i = castInt(right.o);
+					i = castInt(right.o);
 					if (i in left) {
 						result.push(left[i]);
 					}
@@ -329,63 +377,12 @@
 						if (e && e.length) {
 							result.push(left[i]);
 						}
-					}					
+					}
 				}
 			}
 		}
 		return result;
     };
-
-
-    function getInside(data, callback) {
-		var i;
-        if (data instanceof Array) {
-            for (i = 0; i < data.length; i += 1) {
-                if (data[i] instanceof Array) {
-                    getInside(data[i], callback);
-                } else {
-                    callback(data[i]);
-                }
-            }
-        } else {
-            callback(data);
-        }
-    }
-
-    function filterSet(set, filter, deep) {
-		var results = [];
-		if(filter === '*') {
-		    getInside(set, function(o) {
-				if (typeof o === 'object') {
-				    for (k in o) {
-						results.push(o[k]);
-						if (deep && (typeof o[k] === 'object' || typeof o[k] === 'array')) {
-						    results = results.concat(filterSet(o[k], filter, true));
-						}
-				    }
-				}
-		    });
-		} else {
-            getInside(set, function(o) {
-                if (typeof o === 'object') {
-                    if (filter in o) {
-						//todo put in a function "add" and do it recursively
-						if(o[filter] instanceof Array) {
-			            	results = results.concat(o[filter]);
-						} else {
-			             	results.push(o[filter]);
-						}
-                    }
-                    if (deep) { // return all match in tree
-                        for (k in o) {
-                            results = results.concat(filterSet(o[k], filter, true));
-                        }
-                    }
-               }
-            });
-        }
-        return results;
-    }
 
 
     function values(set) {
@@ -445,7 +442,7 @@
 		}
 		var results, i, operation = new Expression(path).parse();
 
-		if (typeof operation == 'string') {
+		if (typeof operation === 'string') {
 			results = filterSet(this, operation, false);
 		} else {
 			results = operation.result(this, this.root);
