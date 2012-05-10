@@ -14,8 +14,7 @@
 		'equal': {priority: 10, str: '='},
 		'and': {priority: 5, str: 'and'},
 		'or': {priority: 1, str: 'or'}
-	},
-		separators = {
+	}, separators = {
 			tokens: {
 				'+': operators.add,
 				'-': operators.substract,
@@ -78,7 +77,7 @@
 		if (typeof right === 'object' && this.o !== operators.predicate) {
 		    right = right.result(data, root);
 		}
-
+		
 		return this.o.operate(left, right, data, root);
 	};
 
@@ -144,7 +143,7 @@
 			var operand = this.expression.substring(this.lastMatch + 1, this.currPos).trim(),
 				remaining = this.expression.substring(this.currPos + 1).trim(),
 				separator = this.expression[this.currPos];
-			if (separators.token.hasOwnProperty(separator)) {
+			if (separators.tokens.hasOwnProperty(separator)) {
 
 				if (separator === ' ') {
 					var str = remaining.substring(0, remaining.indexOf(' '));
@@ -153,7 +152,7 @@
 						this.addOperation(str, operand);
 					}
 				} else if (separator === '(' || separator === '[') {
-					var close = (separator === '[' ? ']' : ')'),
+					var close = (separator === '[' ? ']':')'),
 						exp = new Expression(remaining),
 						operation = exp.parse(close);
 
@@ -170,9 +169,7 @@
 				} else if (separator === closeChar) {
 					this.addOperation(null, operand);
 					return this.operation;
-				}
-
-				if (separator === '/') {
+				} else if (separator === '/') {
 					if (remaining[0] === '/') {
 						separator = '//';
 						this.currPos += 1;
@@ -185,7 +182,7 @@
 						if (this.operation && !this.operator) {
 							this.addOperation(separator, operand);
 						} else if (separator !== '*') {
-							var s = '', j = 0;
+							var s = '', j;
 
 							for (j = 0; j < this.currPos; j += 1) {s += ' '; }
 							console.log(this.expression);
@@ -213,8 +210,7 @@
 		    value = value[0];
 		}
 	    var i = parseInt(value);
-
-	    if (isNaN(i) || i.toString() !== value) {
+	    if (isNaN(i) || i.toString() !== value.toString()) {
 			throw new Error('value "' + value + '" is not a int')
 		}
 		return i;
@@ -266,7 +262,7 @@
 			}
 			return false;
 	    }
-	    return left === right;
+	    return left == right;
     };
 
     operators.union.operate = function (left, right) {
@@ -274,18 +270,17 @@
     };
 
     operators.child.operate = function (left, right, data, root) {
-		if(typeof left === 'string' && left !== '') {
+		if(typeof left === 'string' && left != '') {
 			left = filterSet(data, left, false);
 		}
 		if(!right) {
 			return left;
 		}
-		
+
 		if(left) {
 			return filterSet(left, right, false);
-		} else {
-			return filterSet(root, right, false);
 		}
+		return filterSet(root, right, false);
     };
 
     operators.deepChild.operate = function (left, right, data, root) {
@@ -345,7 +340,7 @@
     function getInside(data, callback) {
 		var i;
         if (data instanceof Array) {
-            for (i = 0; i < data.length; i++) {
+            for (i = 0; i < data.length; i += 1) {
                 if (data[i] instanceof Array) {
                     getInside(data[i], callback);
                 } else {
@@ -429,7 +424,7 @@
         if (root instanceof Array) {
 		    this.root = root;
 		} else {
-            if (root !== null) {
+            if (root) {
             	this.root = [];
 	 			this.root.push(root);
 	 		} else {
@@ -439,8 +434,7 @@
     };
 	JPath.prototype = new Array();
 
-    JPath.prototype.q = function (path, callback)
-	{
+    JPath.prototype.q = function (path, callback) {
 		if (!path) {
 		    if(callback) {
 				for (var i = 0; i < this.length; i += 1) {
