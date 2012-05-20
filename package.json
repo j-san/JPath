@@ -13,8 +13,7 @@
    ],
    "licenses": [ { "type": "MIT", "url": "http://mit-license.org/" } ],
    "repositories": [ { "type": "git", "url": "https://github.com/j-san/JPath.git" } ],
-   "main": "",
-
+   "main": "./src/JPath.js",
 
    "devDependencies": { 
  		"qunit": "0.2.x"
