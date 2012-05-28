@@ -3,41 +3,39 @@
 
 JPath is a tool for riding through json using an XPath syntax.
 
-JPath is Node.js complient
 
-install:
+Install for Node.js
+-------------------
 
     npm install JPath
 
-Travis CI tracker: http://travis-ci.org/#!/j-san/JPath
-
+Travis CI tracker: http://travis-ci.org/j-san/JPath
 [![Build Status](https://secure.travis-ci.org/j-san/JPath.png?branch=master)](http://travis-ci.org/j-san/JPath)
 
-usage
+
+Usage
 -----
 
-    var d = new JPath(data)
-Create a new examinable data set. JPath extends Array,
-get free to use Array functions on JPath like push or slice.
+JPath improve Array method set, you just need to add elements in arrays
+to start using JPath.
 
-    d.q(path, function) or JPath.query([path][, function])
-Return a subset of JPath, if callback is specified, callback 
-is called for each matching elements.
+    Array.query([path]) or Array.q([path])
+Return a subset of the array containig each matching elements.
 
-    d.count([path])
+    Array.count([path])
 Return the number of matching elements by path.
  
-    d.sum([path])
+    Array.sum([path])
 Return the sum of matched values.
 
-    d.exists([path])
+    Array.exists([path])
 Return true if any element match the path.
 
-    d.valueOf([path])
-Return each literal values of the set.
+    Array.valueOf([path])
+Return a string containig each literal values of the array.
 
-    d.copyOf([path])
-Return a string representation of the set.
+    Array.copyOf([path])
+Return a string representation of the array.
  
  
 Supported XPath syntax
@@ -48,3 +46,19 @@ Supported XPath syntax
     computing[(1+2)*123=5]
     /any[combining]/of//different/*[0]/syntax
 	...
+
+
+Supported XPath operators
+-------------------------
+/ child
+// descendant
+% modulo'
+/ divide
+* multiply
++ add
+- substract
+| union
+= equal
+and and
+or or
+

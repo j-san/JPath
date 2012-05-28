@@ -1,5 +1,5 @@
 (function() {
-	var data = {
+	var data = [{
 		hello: {
 			bar: 'bar',
 			baz: 'baz',
@@ -25,10 +25,9 @@
 			{ bc: 'a', bd: 'b', be: 'c' }
 		],
 		toto: { foo: 'foo3', fifi: 'fifi' }
-	};
+	}];
 
-	var set = new JPath(data);
-	var tests = new JPath({
+	var tests = [{
 		assertEquals:[
 			{ path:'toto', expected:[{ foo: 'foo3', fifi: 'fifi' }],values:'foo3,fifi' },
 			{ path:'toto/foo', expected:['foo3'], count:1, values:'foo3' },
@@ -60,12 +59,12 @@
 			{ path:'toto//'},
 			{ path:'//'}
 		]
-	});
+	}];
 	test("q(path) test", function() {
 		expect(tests[0].assertEquals.length);
-		tests.q('/assertEquals',function(i,test){
-			var results = set.q(test.path);
-			deepEqual(results.asArray(), test.expected, "set.q(" + test.path + ")");
+		tests.q('/assertEquals').forEach(function(test){
+			var results = data.q(test.path);
+			deepEqual(results, test.expected, "data.q(" + test.path + ")");
 
 		});
 
@@ -77,9 +76,9 @@
 			if(tests[0].assertEquals[i].count){c++;}
 		}
 		expect(c*2);
-		tests.q('/assertEquals[count]',function(i,test){
-			equal(set.q(test.path).count(), test.count, "set.q(" + test.path + ").count()");
-			equal(set.count(test.path), test.count, "set.count(" + test.path + ")");
+		tests.q('/assertEquals[count]').forEach(function(test){
+			equal(data.q(test.path).count(), test.count, "data.q(" + test.path + ").count()");
+			equal(data.count(test.path), test.count, "data.count(" + test.path + ")");
 		});
 	});
 	
@@ -89,9 +88,9 @@
 			if(tests[0].assertEquals[i].values){c++;}
 		}
 		expect(c*2);
-		tests.q('/assertEquals[values]',function(i,test){
-			equal(set.q(test.path).valueOf(), test.values, "set.q(" + test.path + ").valueOf() return " + set.q(test.path).valueOf());
-			equal(set.valueOf(test.path), test.values, "set.count(" + test.path + ") return " + set.valueOf(test.path));
+		tests.q('/assertEquals[values]').forEach(function(test){
+			equal(data.q(test.path).valueOf(), test.values, "data.q(" + test.path + ").valueOf() return " + data.q(test.path).valueOf());
+			equal(data.valueOf(test.path), test.values, "data.count(" + test.path + ") return " + data.valueOf(test.path));
 		});
 	});
 	
@@ -101,18 +100,18 @@
 			if(tests[0].assertEquals[i].sum){c++;}
 		}
 		expect(c*2);
-		tests.q('/assertEquals[sum]',function(i,test){
-			equal(set.q(test.path).sum(), test.sum, "set.q(" + test.path + ").sum() return " + set.q(test.path).sum());
-			equal(set.sum(test.path), test.sum, "set.sum(" + test.path + ") return " + set.sum(test.path));
+		tests.q('/assertEquals[sum]').forEach(function(test){
+			equal(data.q(test.path).sum(), test.sum, "data.q(" + test.path + ").sum() return " + data.q(test.path).sum());
+			equal(data.sum(test.path), test.sum, "data.sum(" + test.path + ") return " + data.sum(test.path));
 		});
 	});
 	
 	test("raise test", function() {
 		expect(tests[0].assertErrors.length);
-		tests.q('/assertErrors',function(i,test){
+		tests.q('/assertErrors').forEach(function(test){
 			raises(function(){
-				set.q(test.path);
-			},"set.q(" + test.path + ") raise an error");
+				data.q(test.path);
+			},"data.q(" + test.path + ") raise an error");
 		});
 	});
 
@@ -133,7 +132,7 @@
 	    ]
 	    
 	    for(var i=0;i < tests.length;i++){
-			equal(set.q(tests[i].exp)[0], tests[i].result, tests[i].exp + ' => ' + tests[i].result + ' - ' + set.q(tests[i].exp));
+			equal(data.q(tests[i].exp)[0], tests[i].result, tests[i].exp + ' => ' + tests[i].result + ' - ' + data.q(tests[i].exp));
 	    }
 	});
 }());

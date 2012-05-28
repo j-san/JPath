@@ -68,17 +68,17 @@
 		return '(' + this.l + ' ' + this.o.str + ' ' + this.r + ')';
 	};
 
-	Operation.prototype.result = function (data, root) {
+	Operation.prototype.result = function (data) {
 		var left = this.l, right = this.r;
 		if (typeof left === 'object') {
-		    left = left.result(data, root);
+		    left = left.result(data);
 		}
 
 		if (typeof right === 'object' && this.o !== operators.predicate) {
-		    right = right.result(data, root);
+		    right = right.result(data);
 		}
 		
-		return this.o.operate(left, right, data, root);
+		return this.o.operate(left, right, data);
 	};
 
 	function Parenthese(operation, type) {
@@ -104,9 +104,9 @@
 		}
 	};
 
-	Parenthese.prototype.result = function (data, root) {
+	Parenthese.prototype.result = function (data) {
 		if (typeof this.o === 'object') {
-			return this.o.result(data, root);
+			return this.o.result(data);
 		}
 		return this.o;
 	};
@@ -320,7 +320,7 @@
 		return left.concat(right);
     };
 
-    operators.child.operate = function (left, right, data, root) {
+    operators.child.operate = function (left, right, data) {
 		if (typeof left === 'string' && left !== '') {
 			left = filterSet(data, left, false);
 		}
@@ -328,13 +328,13 @@
 			return left;
 		}
 
-		if (left) {
-			return filterSet(left, right, false);
-		}
-		return filterSet(root, right, false);
+		if (!left) {
+            left = data;
+        }
+        return filterSet(left, right, false);
     };
 
-    operators.deepChild.operate = function (left, right, data, root) {
+    operators.deepChild.operate = function (left, right, data) {
 		if (typeof left === 'string' && left !== '') {
 			left = filterSet(data, left, false);
 		}
@@ -342,13 +342,13 @@
 			throw new Error('A path can not terminate with //');
 		}
 
-		if (left) {
-			return filterSet(left, right, true);
-		}
-		return filterSet(root, right, true);
+		if (!left) {
+            left = data;
+        }
+        return filterSet(left, right, true);
     };
 
-    operators.predicate.operate = function (left, right, data, root) {
+    operators.predicate.operate = function (left, right, data) {
 		var  result = [], e, i;
 		if (typeof left === 'string' && left !== '') {
 			left = filterSet(data, left, false);
@@ -360,7 +360,7 @@
 		if (left) {
 			if (typeof right.o === 'object') {
 				for (i in left) {
-					e = right.result(left[i], root);
+					e = right.result(left[i]);
 					if (e && e.length) {
 						result.push(left[i]);
 					}
@@ -373,7 +373,7 @@
 					}
 				} catch (err) {
 					for (i in left) {
-						e = operators.child.operate(left[i], right.o, data, root);
+						e = operators.child.operate(left[i], right.o, data);
 						if (e && e.length) {
 							result.push(left[i]);
 						}
@@ -402,99 +402,65 @@
     }
 
 
-
-	
     /**** MAIN JPATH OBJECT DECLARATION ****/
-    function JPath(data,root) {
-		if (data instanceof JPath) {
-			return data;
-		}
-        if (data instanceof Array) {
-			for (var i in data) {
-				this.push(data[i]);
-			}
-            //this.concat(data)
-        } else if (data !== null) {
-			this.push(data);
-        }
-
-        if (root instanceof Array) {
-		    this.root = root;
-		} else {
-            if (root) {
-            	this.root = [];
-	 			this.root.push(root);
-	 		} else {
-				this.root = this;// this.root.concat(this);
-			}
-        }
-    };
-	JPath.prototype = new Array();
-
-    JPath.prototype.q = function (path, callback) {
+    Array.prototype.query = function (path) {
 		if (!path) {
-		    if(callback) {
-				for (var i = 0; i < this.length; i += 1) {
-				    callback(i, this[i]);
-				}
-		    }
 			return this;
 		}
-		var results, i, operation = new Expression(path).parse();
+		var results, i, 
+            operation = new Expression(path).parse();
 
 		if (typeof operation === 'string') {
 			results = filterSet(this, operation, false);
 		} else {
-			results = operation.result(this, this.root);
+			results = operation.result(this);
+            if (typeof results === 'undefined' || results === null) {
+                results = [];
+            }
+            if (!(results instanceof Array)) {
+                results = [results];
+            }
 		}
-	    if (callback) {
-			for (i = 0; i < results.length; i += 1) {
-			    callback(i, results[i]);
-			}
-	    }
-		return new JPath(results);
-        // return results;
+
+		return results;
     };
 
-	JPath.prototype.query = JPath.prototype.q;
+	Array.prototype.q = Array.prototype.query;
 
-    JPath.prototype.count = function (path) {
+    Array.prototype.count = function (path) {
         return this.query(path).length;
     };
 
-    JPath.prototype.sum = function (path) {
+    Array.prototype.sum = function (path) {
     	var sum = 0;
-        this.query(path, function(i, e) {
-			sum += e;
+        this.query(path).forEach(function(e) {
+            if(typeof e === 'number') {
+                sum += e;
+            }
     	});
    		return sum;
     };
 
-    JPath.prototype.exists = function (path) {
+    Array.prototype.exists = function (path) {
         return this.query(path).length > 0;
     };
 
-    JPath.prototype.valueOf = function(path) {
+    Array.prototype.valueOf = function(path) {
     	return values(this.query(path)).join();
     };
 
-    JPath.prototype.copyOf = function(path) {
-        return JSON.stringify(this.query(path).asArray());
-    };
-
-    JPath.prototype.asArray = function() {
-		return this.slice(0);
+    Array.prototype.copyOf = function(path) {
+        return JSON.stringify(this.query(path));
     };
 
 	//JPath.prototype.sort = function(path) {}
 	//JPath.prototype.distinct = function(path) {}
-	if(typeof(window) !== 'undefined') {
-		window.Expression = Expression;
-		window.JPath = JPath;
-	}
-	if(typeof(exports) !== 'undefined') {
-		exports.Expression = Expression;
-		exports.JPath = JPath;
-	}
-
+    
+    if (typeof Array.prototype.forEach === 'undefined') {
+        Array.prototype.forEach = function(callback, thisArg) {
+			for (i = 0; i < this.length; i += 1) {
+                callback.call(thisArg || this[i], this[i], i, O );
+			}
+        };
+    }
 }());
