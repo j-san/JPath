@@ -52,7 +52,7 @@ Supported XPath operators
 -------------------------
 / child
 // descendant
-% modulo'
+% modulo
 / divide
 * multiply
 + add
@@ -61,4 +61,11 @@ Supported XPath operators
 = equal
 and and
 or or
+
+
+Todo
+----
+- use forEach and hasOwnProperty in loops
+- use grunk
+- function support
 
